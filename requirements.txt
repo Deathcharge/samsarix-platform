@@ -1,0 +1,22 @@
+# Core dependencies
+helix-agent-swarm>=1.0.0
+agent-consensus>=1.0.0
+unified-llm>=1.0.0
+ucf-protocol>=1.0.0
+routine-engine>=1.0.0
+helix-chat-engine>=1.0.0
+helix-hub-shared>=1.0.0
+
+# LLM providers
+openai>=1.0.0
+anthropic>=0.7.0
+groq>=0.4.0
+
+# Utilities
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+aiohttp>=3.9.0
+
+# Async support
+asyncio-contextmanager>=1.0.0
