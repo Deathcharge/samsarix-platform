@@ -1,0 +1,26 @@
+schema_version = 1
+
+[project]
+name = "Helix Platform Doctor"
+requires_python = ">=3.11"
+
+[[components]]
+name = "Helix Platform Doctor package"
+distribution = "helix-platform"
+required = true
+description = "The installed CLI distribution"
+
+[[files]]
+path = "README.md"
+required = true
+description = "User-facing product documentation"
+
+[[files]]
+path = "pyproject.toml"
+required = true
+description = "Build and package metadata"
+
+[[files]]
+path = "src/helix_platform/cli.py"
+required = true
+description = "CLI entry point"

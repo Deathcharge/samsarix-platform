@@ -1,0 +1,23 @@
+schema_version = 1
+
+[project]
+name = "Example agent project"
+requires_python = ">=3.11"
+
+[[components]]
+name = "OpenAI Python SDK"
+distribution = "openai"
+required = false
+description = "Only required when the project selects OpenAI as its provider"
+
+[[environment]]
+name = "OPENAI_API_KEY"
+required = false
+secret = true
+description = "Only required for authenticated OpenAI requests"
+
+[[files]]
+path = "README.md"
+required = true
+description = "Example instructions"
+
