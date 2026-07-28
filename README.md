@@ -1,93 +1,215 @@
-# helix-platform
+# Helix Platform Doctor
 
-Central integration hub for the Helix Collective ecosystem. Provides platform overview, quick start guides, integration examples, and deployment documentation.
+Helix Platform Doctor is a local command-line tool that checks whether a Python multi-agent project has the runtime, installed packages, configuration names, and files it declares.
 
-## 🎯 Overview
+It is for developers who want an actionable preflight before starting an agent application or running its CI—not another agent framework, hosted service, or replacement for [`helix-unified`](https://github.com/Deathcharge/helix-unified).
 
-This repository is part of the [Helix Collective](https://github.com/Deathcharge/helix-platform), a comprehensive ecosystem for building intelligent, multi-agent systems with consciousness frameworks and advanced LLM integration.
+> Status: `0.1.0` pre-release. The core local workflow is implemented and tested, but the package has not been published. License selection and publication are owner-controlled release gates.
 
-## 🚀 Quick Start
+## What it does
 
-### Installation
+Given a versioned `helix-stack.toml`, `helix-platform doctor` checks:
 
-\`\`\`bash
+- the active Python version;
+- whether declared Python distributions are installed;
+- whether declared environment variables are present;
+- whether declared project-relative files or directories exist.
+
+It produces human-readable output by default and stable JSON for automation. It does not import declared packages, validate credential contents, load `.env`, execute manifest commands, call an LLM, make network requests, or send telemetry.
+
+## Fastest successful setup
+
+Prerequisite: Python 3.11 or newer.
+
+```console
 git clone https://github.com/Deathcharge/helix-platform.git
 cd helix-platform
-pip install -r requirements.txt
-\`\`\`
+python -m venv .venv
+```
 
-### Basic Usage
+Activate the environment:
 
-See the [examples/](examples/) directory for working examples and integration patterns.
+```console
+# macOS or Linux
+source .venv/bin/activate
 
-## 📚 Documentation
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+```
 
-- **[Architecture](docs/ARCHITECTURE.md)** - System design and components
-- **[API Reference](docs/API.md)** - Complete API documentation
-- **[Integration Guide](docs/INTEGRATION.md)** - How to integrate with other Helix repos
-- **[Deployment](docs/DEPLOYMENT.md)** - Production deployment guide
-- **[Contributing](CONTRIBUTING.md)** - How to contribute
+Install and check this repository's manifest:
 
-## 🔗 Related Repositories
+```console
+python -m pip install .
+helix-platform doctor
+```
 
-- **[helix-platform](https://github.com/Deathcharge/helix-platform)** - Central hub and integration guide
-- **[helix-unified](https://github.com/Deathcharge/helix-unified)** - Main unified codebase
-- **[helix-core](https://github.com/Deathcharge/helix-core)** - Core utilities and LLM integration
+Expected summary:
 
-See [HELIX_REPOSITORY_INDEX.md](https://github.com/Deathcharge/helix-platform/blob/main/HELIX_REPOSITORY_INDEX.md) for the complete ecosystem map.
+```text
+Summary: 5 passed, 0 warned, 0 failed
+Result: READY
+```
 
-## 🧪 Testing
+No API key, external Helix repository, database, container runtime, or cloud account is required.
 
-Run tests with pytest:
+## Use it in another project
 
-\`\`\`bash
-pytest tests/ -v --cov=src
-\`\`\`
+Generate a starter manifest without overwriting existing content:
 
-## 🔄 CI/CD
+```console
+cd your-agent-project
+helix-platform init
+helix-platform doctor
+```
 
-This repository uses GitHub Actions for:
-- ✅ Automated testing (Python 3.9, 3.10, 3.11)
-- ✅ Code linting (flake8)
-- ✅ Type checking (mypy)
-- ✅ Security scanning (bandit, safety)
-- ✅ Coverage reporting (Codecov)
+Then add the checks your project actually requires:
 
-See [.github/workflows/ci.yml](.github/workflows/ci.yml) for details.
+```toml
+schema_version = 1
 
-## 📋 Requirements
+[project]
+name = "research-agent"
+requires_python = ">=3.11"
 
-- Python 3.9+
-- Dependencies listed in requirements.txt
-- Development dependencies in requirements-dev.txt
+[[components]]
+name = "OpenAI Python SDK"
+distribution = "openai"
+required = true
 
-## 🤝 Contributing
+[[environment]]
+name = "OPENAI_API_KEY"
+required = true
+secret = true
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
-- Development setup
-- Code style guide
-- Testing requirements
-- Pull request process
+[[files]]
+path = "config/agents.toml"
+required = true
+```
 
-## 📄 License
+Run the check:
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```console
+helix-platform doctor
+```
 
-## 🆘 Support
+Use strict mode in CI when optional warnings should also block readiness:
 
-- **Issues**: Report bugs or request features via [GitHub Issues](https://github.com/Deathcharge/helix-platform/issues)
-- **Discussions**: Ask questions in [GitHub Discussions](https://github.com/Deathcharge/helix-platform/discussions)
-- **Documentation**: See the [docs/](docs/) directory
-- **Ecosystem**: Visit [helix-platform](https://github.com/Deathcharge/helix-platform)
+```console
+helix-platform doctor --strict
+```
 
-## 🎓 Learn More
+Use JSON when another tool needs the result:
 
-- [Helix Collective Repository Index](https://github.com/Deathcharge/helix-platform/blob/main/HELIX_REPOSITORY_INDEX.md)
-- [Architecture Guide](https://github.com/Deathcharge/helix-platform/blob/main/docs/ARCHITECTURE.md)
-- [Integration Examples](https://github.com/Deathcharge/helix-platform/tree/main/examples)
+```console
+helix-platform doctor --json
+```
 
----
+See the runnable [example agent-project manifest](examples/agent-project/helix-stack.toml).
 
-**Status**: ✅ Production Ready  
-**Last Updated**: June 17, 2026  
-**Maintainer**: Helix Collective Contributors
+## Command reference
+
+```text
+helix-platform --help
+helix-platform --version
+helix-platform init [PATH] [--name NAME]
+helix-platform doctor [MANIFEST] [--json] [--strict]
+```
+
+`init` uses exclusive file creation and exits `2` rather than replacing an existing path or following an existing destination symlink.
+
+### Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | All required checks pass; optional warnings are allowed unless `--strict` is set. |
+| `1` | A required check failed, or an optional check warned under `--strict`. |
+| `2` | The command usage or manifest is invalid, unreadable, missing, or unsafe. |
+
+### Manifest schema version 1
+
+Unknown keys and duplicate declarations are errors so misspellings do not silently weaken a check.
+Manifests must be UTF-8, are limited to 1 MiB, and cannot place control/formatting characters in rendered fields.
+
+| Section | Fields | Behavior |
+| --- | --- | --- |
+| root | `schema_version = 1` | Required. Other versions fail explicitly. |
+| `[project]` | `name`, `requires_python` | Both required. Python constraints support `>=MAJOR.MINOR[.PATCH]`. |
+| `[[components]]` | `name`, `distribution`, `required`, `description` | Checks installed distribution metadata without importing code. `required` defaults to `true`. |
+| `[[environment]]` | `name`, `required`, `secret`, `description` | Checks for a nonblank process environment value. Values are never reported. Both booleans default to `true`. |
+| `[[files]]` | `path`, `required`, `description` | Uses portable forward-slash paths contained by the manifest directory. `required` defaults to `true`. |
+
+Descriptions are documentation metadata for the manifest. Version 1 intentionally does not execute commands, inspect file contents, contact endpoints, or validate package APIs.
+
+## Development
+
+Install the package and pinned development tools:
+
+```console
+python -m pip install -e .
+python -m pip install -r requirements-dev.txt
+```
+
+Run the same checks protected by CI:
+
+```console
+python -m ruff format --check .
+python -m ruff check .
+python -m mypy src tests
+python -m coverage erase
+python -m coverage run -m unittest discover -s tests
+python -m coverage report
+python -m build
+python -m twine check dist/*
+helix-platform doctor helix-stack.toml --strict
+```
+
+The runtime has no third-party dependencies. `requirements-dev.txt` is tooling-only and exactly pinned for repeatable contributor and CI checks.
+
+## Packaging and release
+
+`pyproject.toml` defines the package, `src/` layout, typed-package marker, and console entry point. A source distribution and universal wheel can be built with `python -m build`. The wheel must be installed into a fresh virtual environment and smoke-tested before release.
+
+Publication is not automated. See [the release guide](docs/RELEASING.md) for the verified local process and the owner-controlled PyPI, license, and signing gates.
+
+## Architecture
+
+The package has three small layers:
+
+- `manifest.py` strictly parses and validates untrusted TOML;
+- `doctor.py` performs read-only local checks and creates a value-free report;
+- `cli.py` handles commands, rendering, JSON, and exit codes.
+
+See [the architecture guide](docs/ARCHITECTURE.md) for data flow, trust boundaries, and extension rules.
+
+## Security, privacy, reliability, and cost
+
+- Declared distributions are inspected through `importlib.metadata`; they are not imported.
+- Manifest file paths reject absolute paths, `..`, Windows-only separators, resolved symlink escapes, and cyclic/unresolvable links.
+- Secret values are reduced to present/not-present and never included in human or JSON output.
+- The parser rejects unknown keys, wrong types, duplicates, and unsupported schema versions.
+- Parsing reads at most 1 MiB and rejects terminal control/formatting characters.
+- `init` never overwrites a destination or follows an existing destination symlink.
+- Checks are local, bounded by manifest size, and non-destructive.
+- There is no network access, telemetry, AI provider use, or operating cost in the core tool.
+
+The manifest, variable names, project name, and checked file paths are still local project metadata; treat JSON reports accordingly. A passing report establishes only the declared presence checks, not credential validity, API compatibility, application correctness, or production safety.
+
+If you find a vulnerability, prefer GitHub private vulnerability reporting when it is enabled for this repository. Do not put secrets or exploit details in a public issue. The owner still needs to publish a dedicated private security contact.
+
+## Limitations and deliberate non-goals
+
+- No package version-range or API compatibility validation in schema v1.
+- No credential authentication or provider availability checks.
+- No command, container, port, process, or network probes.
+- No `.env` parsing or secret storage.
+- No agent orchestration, consensus engine, scheduler, UI, service, or deployment stack.
+- No claim of product-market fit, production deployment, or validated scale.
+
+These boundaries keep the first release predictable and safe. Proposed extensions are prioritized in [the productization record](docs/PRODUCTIZATION.md).
+
+## Contributing and project status
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the real setup and quality commands and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for participation expectations.
+
+This repository currently has no `LICENSE` file. No open-source license or commercial-use permission is asserted; selecting one is an owner decision required before public package publication or third-party reuse. The historical documentation's contradictory license claims were removed.
