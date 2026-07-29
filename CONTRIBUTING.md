@@ -1,211 +1,75 @@
-# Contributing to Helix Platform
+# Contributing
 
-Thank you for your interest in contributing to Helix Platform! This document provides guidelines for contributing to the project.
+Samsarix Platform Doctor is a small, local-first CLI. Contributions should preserve its narrow scope, deterministic behavior, and no-network/no-secret-output defaults.
 
-## Code of Conduct
+## Setup
 
-We are committed to providing a welcoming and inspiring community for all. Please read and follow our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+Python 3.11 or newer is required.
 
-## Getting Started
-
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally
-3. **Create a branch** for your changes (`git checkout -b feature/amazing-feature`)
-4. **Make your changes** following our code standards
-5. **Write tests** for your changes
-6. **Commit your changes** with clear messages
-7. **Push to your fork** and submit a pull request
-
-## Development Setup
-
-```bash
-# Clone repository
-git clone https://github.com/Deathcharge/helix-platform.git
-cd helix-platform
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-pytest tests/ -v
+```console
+git clone https://github.com/Deathcharge/samsarix-platform.git
+cd samsarix-platform
+python -m venv .venv
 ```
 
-## Code Standards
+Activate the virtual environment, then install the package and pinned development tools:
 
-### Python Code Style
-
-- Follow PEP 8 guidelines
-- Use type hints for all functions
-- Maximum line length: 100 characters
-- Use meaningful variable names
-- Add docstrings to all functions and classes
-
-### Example
-
-```python
-def process_agent_response(
-    agent_name: str,
-    response: str,
-    timeout: int = 30
-) -> Dict[str, Any]:
-    """
-    Process a response from an agent.
-    
-    Args:
-        agent_name: Name of the agent
-        response: Response text from agent
-        timeout: Processing timeout in seconds
-        
-    Returns:
-        Dictionary containing processed response
-        
-    Raises:
-        TimeoutError: If processing exceeds timeout
-    """
-    # Implementation
-    pass
+```console
+python -m pip install -e .
+python -m pip install -r requirements-dev.txt
 ```
 
-## Testing
+## Before opening a pull request
 
-### Write Tests
+Run:
 
-All new features must include tests:
-
-```python
-def test_agent_registration():
-    """Test that agents can be registered"""
-    orchestrator = HelixOrchestrator()
-    orchestrator.register_agent("test", "Gemini")
-    assert "test" in orchestrator.agents
+```console
+python -m ruff format --check .
+python -m ruff check .
+python -m mypy src tests
+python -m coverage erase
+python -m coverage run -m unittest discover -s tests
+python -m coverage report
+python -m build
+python -m twine check dist/*
+samsarix-platform doctor samsarix-stack.toml --strict
 ```
 
-### Run Tests
+CI runs the unit tests and installed CLI journey on Windows and Linux, then repeats lint, type, coverage, and build checks on Linux.
 
-```bash
-# Run all tests
-pytest tests/ -v
+## Change expectations
 
-# Run specific test
-pytest tests/test_orchestration.py::test_agent_registration -v
+- Add or update tests for behavior changes, including failure and recovery paths.
+- Keep human output understandable and JSON output backward compatible within schema v1.
+- Reject invalid configuration rather than silently weakening checks.
+- Never print environment-variable values or import a declared component merely to test presence.
+- Keep filesystem access inside the manifest's project root.
+- Add bounded timeouts and cancellation before proposing any future network or subprocess check.
+- Update the README, example, changelog, and `docs/PRODUCTIZATION.md` when public behavior or release status changes.
 
-# Run with coverage
-pytest tests/ --cov=helix_platform --cov-report=html
-```
+The project uses a 100-character line limit, Ruff formatting/linting, strict mypy, and a 90% branch-aware coverage floor.
 
-### Coverage Requirements
+## Commit and pull-request guidance
 
-- Minimum 80% code coverage
-- All public methods must have tests
-- Integration tests required for new features
+Prefer focused commits with an imperative summary such as `fix: reject resolved symlink escapes`. A pull request should explain:
 
-## Documentation
+- the user problem and scope;
+- public behavior and compatibility impact;
+- security/privacy implications;
+- tests and exact commands run;
+- documentation changes;
+- any remaining limitation.
 
-### Update Documentation
+Do not include secrets, generated `dist/` artifacts, local virtual environments, or unrelated formatting changes.
 
-- Update relevant `.md` files in `docs/`
-- Add docstrings to code
-- Include examples for new features
-- Update API reference if needed
+## Issues and security reports
 
-### Documentation Standards
+Use GitHub Issues for reproducible bugs and bounded feature proposals. Include the operating system, Python version, command, manifest with secrets removed, exit code, and expected versus actual result.
 
-- Use clear, concise language
-- Include code examples
-- Add diagrams for complex concepts
-- Keep documentation up-to-date with code
+For vulnerabilities, email [support@samsarix.com](mailto:support@samsarix.com) or use GitHub private vulnerability reporting when available. Do not post exploit details or secrets publicly. See [SECURITY.md](SECURITY.md).
 
-## Commit Messages
+For general project or partnership questions, email [contact@samsarix.com](mailto:contact@samsarix.com).
 
-Use clear, descriptive commit messages:
+## Contribution license
 
-```
-feat: Add consensus voting mechanism
-
-- Implement supermajority voting strategy
-- Add unanimous consensus option
-- Add tests for voting logic
-- Update documentation
-
-Fixes #123
-```
-
-### Commit Message Format
-
-- **feat**: New feature
-- **fix**: Bug fix
-- **docs**: Documentation changes
-- **style**: Code style changes
-- **refactor**: Code refactoring
-- **test**: Test additions/changes
-- **chore**: Build/dependency changes
-
-## Pull Request Process
-
-1. **Update documentation** if needed
-2. **Add tests** for new functionality
-3. **Ensure all tests pass** (`pytest tests/ -v`)
-4. **Check code coverage** (minimum 80%)
-5. **Request review** from maintainers
-6. **Address feedback** and update PR
-7. **Merge** once approved
-
-### PR Template
-
-```markdown
-## Description
-Brief description of changes
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Documentation update
-
-## Testing
-- [ ] Added tests
-- [ ] All tests pass
-- [ ] Coverage maintained
-
-## Checklist
-- [ ] Code follows style guidelines
-- [ ] Documentation updated
-- [ ] No breaking changes
-```
-
-## Reporting Issues
-
-### Bug Reports
-
-Include:
-- Python version and OS
-- Steps to reproduce
-- Expected vs actual behavior
-- Error messages and logs
-- Minimal code example
-
-### Feature Requests
-
-Include:
-- Use case and motivation
-- Proposed solution
-- Alternative approaches
-- Example usage
-
-## Community
-
-- **GitHub Issues**: Report bugs and request features
-- **Discussions**: Ask questions and share ideas
-- **Discord**: Join our community server
-- **Twitter**: Follow @HelixCollective
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the same license as the project (Apache 2.0 / Proprietary).
-
----
-
-Thank you for contributing to Helix Platform! 🙏
+This project is licensed under the [Mozilla Public License 2.0](LICENSE). By submitting a contribution, you agree that it is available under MPL 2.0 and represent that you have the right to provide it. Copyright in a contribution remains with its copyright holder unless a separate written agreement says otherwise. New Python files should include `SPDX-License-Identifier: MPL-2.0`; add an accurate copyright notice when appropriate.

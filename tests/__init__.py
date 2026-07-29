@@ -1,8 +1,4 @@
 # Copyright (c) 2026 Samsarix LLC
 # SPDX-License-Identifier: MPL-2.0
 
-build==1.5.0
-coverage==7.13.2
-mypy==1.19.1
-ruff==0.15.12
-twine==6.2.0
+"""Samsarix Platform Doctor test suite."""

@@ -1,60 +1,27 @@
-# Code of Conduct
+# Code of conduct
 
-## Our Commitment
+## Our commitment
 
-We are committed to providing a welcoming, inclusive, and harassment-free community for everyone. We value the participation of each member and want all contributors to have a positive experience.
+Project spaces should be welcoming, professional, and free from harassment. Participants are expected to communicate respectfully, assume good faith while evaluating evidence, and make room for people with different backgrounds and experience levels.
 
-## Expected Behavior
+## Expected behavior
 
-We expect all community members to:
+- Be respectful, specific, and constructive.
+- Focus criticism on ideas, code, and observable behavior.
+- Protect private information and credentials.
+- Accept corrections and resolve disagreements with evidence.
+- Respect project scope, maintainer decisions, and community boundaries.
 
-- **Be respectful** - Treat others with kindness and respect
-- **Be inclusive** - Welcome people of all backgrounds and experience levels
-- **Be constructive** - Provide helpful feedback and support
-- **Be professional** - Keep discussions focused and productive
-- **Be honest** - Act with integrity and transparency
+## Unacceptable behavior
 
-## Unacceptable Behavior
+- Harassment, discrimination, threats, or personal attacks.
+- Sexualized language or unwelcome attention.
+- Publishing another person's private information without permission.
+- Deliberate disruption, impersonation, or repeated bad-faith engagement.
+- Pressuring anyone to disclose credentials or nonpublic security details.
 
-The following behaviors are not tolerated:
+## Scope and enforcement
 
-- Harassment, discrimination, or bullying
-- Offensive language or personal attacks
-- Unwelcome sexual attention or advances
-- Sharing others' private information without consent
-- Disruptive or trolling behavior
-- Any form of intimidation or threats
+This code applies in repository issues, pull requests, discussions, and other official project spaces. Maintainers may edit or remove contributions, restrict participation, or ban participants when necessary to protect the community.
 
-## Reporting Issues
-
-If you experience or witness unacceptable behavior:
-
-1. **Document** the incident (date, time, people involved, description)
-2. **Report** to the maintainers at conduct@helix-platform.ai
-3. **Include** any relevant context or evidence
-4. **Remain** confidential and respectful
-
-## Enforcement
-
-Violations of this code of conduct may result in:
-
-- Warning or temporary suspension
-- Removal from the community
-- Permanent ban from the project
-
-## Scope
-
-This code of conduct applies to:
-- GitHub repositories and issues
-- Pull request discussions
-- Community forums and chat
-- Official events and meetings
-- Any official project communication
-
-## Questions?
-
-If you have questions about this code of conduct, please contact the maintainers.
-
----
-
-**We are committed to fostering an inclusive and welcoming community.** 🌍
+Use GitHub's report/block controls for urgent platform abuse. Report project conduct concerns privately to [support@samsarix.com](mailto:support@samsarix.com) with the subject `Conduct: Samsarix Platform Doctor`. Do not disclose secrets or sensitive personal information in a public issue.

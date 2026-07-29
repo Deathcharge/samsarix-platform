@@ -1,0 +1,73 @@
+# Copyright (c) 2026 Samsarix LLC
+# SPDX-License-Identifier: MPL-2.0
+
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "samsarix-platform"
+version = "0.1.0"
+description = "Local readiness checks for Python multi-agent projects"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "Samsarix LLC", email = "contact@samsarix.com" },
+]
+maintainers = [
+  { name = "Samsarix LLC", email = "support@samsarix.com" },
+]
+license = "MPL-2.0"
+license-files = ["LICENSE"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
+]
+keywords = ["agents", "configuration", "diagnostics", "readiness"]
+dependencies = []
+
+[project.urls]
+Homepage = "https://www.samsarix.com"
+Repository = "https://github.com/Deathcharge/samsarix-platform"
+Issues = "https://github.com/Deathcharge/samsarix-platform/issues"
+
+[project.scripts]
+samsarix-platform = "samsarix_platform.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+samsarix_platform = ["py.typed"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "SIM", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src", "tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["samsarix_platform"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true

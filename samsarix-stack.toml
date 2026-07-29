@@ -1,0 +1,29 @@
+# Copyright (c) 2026 Samsarix LLC
+# SPDX-License-Identifier: MPL-2.0
+
+schema_version = 1
+
+[project]
+name = "Samsarix Platform Doctor"
+requires_python = ">=3.11"
+
+[[components]]
+name = "Samsarix Platform Doctor package"
+distribution = "samsarix-platform"
+required = true
+description = "The installed CLI distribution"
+
+[[files]]
+path = "README.md"
+required = true
+description = "User-facing product documentation"
+
+[[files]]
+path = "pyproject.toml"
+required = true
+description = "Build and package metadata"
+
+[[files]]
+path = "src/samsarix_platform/cli.py"
+required = true
+description = "CLI entry point"
