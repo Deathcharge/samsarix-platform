@@ -1,10 +1,13 @@
+# Copyright (c) 2026 Samsarix LLC
+# SPDX-License-Identifier: MPL-2.0
+
 from __future__ import annotations
 
 import tempfile
 import unittest
 from pathlib import Path
 
-from helix_platform.manifest import MAX_MANIFEST_BYTES, ManifestError, load_manifest
+from samsarix_platform.manifest import MAX_MANIFEST_BYTES, ManifestError, load_manifest
 
 VALID_MANIFEST = """\
 schema_version = 1
@@ -39,7 +42,7 @@ class ManifestTests(unittest.TestCase):
         self.root = Path(self.temporary.name)
 
     def write_manifest(self, content: str = VALID_MANIFEST) -> Path:
-        path = self.root / "helix-stack.toml"
+        path = self.root / "samsarix-stack.toml"
         path.write_text(content, encoding="utf-8")
         return path
 
@@ -66,7 +69,7 @@ class ManifestTests(unittest.TestCase):
             load_manifest(self.root / "missing.toml")
 
     def test_reports_a_manifest_symlink_loop(self) -> None:
-        path = self.root / "helix-stack.toml"
+        path = self.root / "samsarix-stack.toml"
         try:
             path.symlink_to(path)
         except OSError as exc:
@@ -80,14 +83,14 @@ class ManifestTests(unittest.TestCase):
             load_manifest(self.root)
 
     def test_rejects_oversized_manifests_before_parsing(self) -> None:
-        path = self.root / "helix-stack.toml"
+        path = self.root / "samsarix-stack.toml"
         path.write_bytes(b"#" * (MAX_MANIFEST_BYTES + 1))
 
         with self.assertRaisesRegex(ManifestError, "size limit"):
             load_manifest(path)
 
     def test_rejects_non_utf8_manifests(self) -> None:
-        path = self.root / "helix-stack.toml"
+        path = self.root / "samsarix-stack.toml"
         path.write_bytes(b"schema_version = 1\n# \xff")
 
         with self.assertRaisesRegex(ManifestError, "valid UTF-8"):

@@ -1,4 +1,7 @@
-"""Command-line interface for Helix Platform Doctor."""
+# Copyright (c) 2026 Samsarix LLC
+# SPDX-License-Identifier: MPL-2.0
+
+"""Command-line interface for Samsarix Platform Doctor."""
 
 from __future__ import annotations
 
@@ -8,18 +11,18 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from helix_platform import __version__
-from helix_platform.doctor import DoctorReport, run_checks
-from helix_platform.manifest import ManifestError, load_manifest
+from samsarix_platform import __version__
+from samsarix_platform.doctor import DoctorReport, run_checks
+from samsarix_platform.manifest import ManifestError, load_manifest
 
-DEFAULT_MANIFEST = "helix-stack.toml"
+DEFAULT_MANIFEST = "samsarix-stack.toml"
 
 
 def build_parser() -> argparse.ArgumentParser:
     """Create the public argument parser."""
 
     parser = argparse.ArgumentParser(
-        prog="helix-platform",
+        prog="samsarix-platform",
         description="Check whether a Python multi-agent project is ready to run.",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
@@ -69,7 +72,7 @@ def _run_doctor(manifest_path: Path, *, json_output: bool, strict: bool) -> int:
             print(
                 json.dumps(
                     {
-                        "schema": "helix-platform-doctor/v1",
+                        "schema": "samsarix-platform-doctor/v1",
                         "tool_version": __version__,
                         "status": "invalid_manifest",
                         "exit_code": 2,
@@ -92,7 +95,7 @@ def _run_doctor(manifest_path: Path, *, json_output: bool, strict: bool) -> int:
 
 
 def _render_human(report: DoctorReport, *, strict: bool) -> None:
-    print(f"Helix Platform Doctor {__version__}")
+    print(f"Samsarix Platform Doctor {__version__}")
     print(f"Project:  {report.project_name}")
     print(f"Manifest: {report.manifest_path}")
     print()
@@ -132,13 +135,13 @@ def _run_init(destination: Path, *, project_name: str | None) -> int:
         return 2
 
     print(f"Created {target}")
-    print(f"Next: helix-platform doctor {target}")
+    print(f"Next: samsarix-platform doctor {target}")
     return 0
 
 
 def _starter_manifest(project_name: str) -> str:
     encoded_name = json.dumps(project_name, ensure_ascii=False)
-    return f"""# Helix Platform Doctor manifest
+    return f"""# Samsarix Platform Doctor manifest
 schema_version = 1
 
 [project]

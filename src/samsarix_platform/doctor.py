@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Samsarix LLC
+# SPDX-License-Identifier: MPL-2.0
+
 """Read-only readiness checks for a validated project manifest."""
 
 from __future__ import annotations
@@ -10,8 +13,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
 from typing import Literal
 
-from helix_platform import __version__
-from helix_platform.manifest import ComponentSpec, EnvironmentSpec, FileSpec, Manifest
+from samsarix_platform import __version__
+from samsarix_platform.manifest import ComponentSpec, EnvironmentSpec, FileSpec, Manifest
 
 CheckStatus = Literal["pass", "warn", "fail"]
 
@@ -65,7 +68,7 @@ class DoctorReport:
         """Serialize the report without including any checked secret values."""
 
         return {
-            "schema": "helix-platform-doctor/v1",
+            "schema": "samsarix-platform-doctor/v1",
             "tool_version": __version__,
             "manifest": str(self.manifest_path),
             "project": self.project_name,

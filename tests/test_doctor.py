@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Samsarix LLC
+# SPDX-License-Identifier: MPL-2.0
+
 from __future__ import annotations
 
 import importlib.metadata
@@ -6,8 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from helix_platform.doctor import run_checks
-from helix_platform.manifest import load_manifest
+from samsarix_platform.doctor import run_checks
+from samsarix_platform.manifest import load_manifest
 
 
 class DoctorTests(unittest.TestCase):
@@ -23,7 +26,7 @@ class DoctorTests(unittest.TestCase):
     def manifest(
         self, *, component_required: bool = True, environment_required: bool = True
     ) -> Path:
-        path = self.root / "helix-stack.toml"
+        path = self.root / "samsarix-stack.toml"
         path.write_text(
             f"""\
 schema_version = 1

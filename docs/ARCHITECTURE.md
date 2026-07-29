@@ -1,6 +1,6 @@
 # Architecture
 
-Helix Platform Doctor is a single-process, local Python CLI. Its job is to turn a small project manifest into bounded readiness results; it does not run the declared application.
+Samsarix Platform Doctor is a single-process, local Python CLI. Its job is to turn a small project manifest into bounded readiness results; it does not run the declared application.
 
 ## Data flow
 
@@ -24,7 +24,7 @@ flowchart LR
 ## Package layout
 
 ```text
-src/helix_platform/
+src/samsarix_platform/
 ├── __init__.py   package version
 ├── __main__.py   python -m entry point
 ├── cli.py        argument parsing, rendering, init, exit behavior

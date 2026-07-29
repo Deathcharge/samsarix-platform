@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Samsarix LLC
+# SPDX-License-Identifier: MPL-2.0
+
 name: CI
 
 on:
@@ -38,10 +41,10 @@ jobs:
         run: python -m unittest discover -s tests -v
 
       - name: Run strict repository readiness check
-        run: helix-platform doctor helix-stack.toml --strict
+        run: samsarix-platform doctor samsarix-stack.toml --strict
 
       - name: Verify JSON readiness output
-        run: helix-platform doctor helix-stack.toml --json --strict
+        run: samsarix-platform doctor samsarix-stack.toml --json --strict
 
   quality:
     name: Quality and package
@@ -85,8 +88,7 @@ jobs:
       - name: Reinstall and smoke-test the wheel
         run: |
           python -m pip install --disable-pip-version-check --force-reinstall dist/*.whl
-          helix-platform --version
-          helix-platform doctor helix-stack.toml --strict
-          python -m helix_platform --version
+          samsarix-platform --version
+          samsarix-platform doctor samsarix-stack.toml --strict
+          python -m samsarix_platform --version
           python -m pip check
-

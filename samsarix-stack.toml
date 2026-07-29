@@ -1,12 +1,15 @@
+# Copyright (c) 2026 Samsarix LLC
+# SPDX-License-Identifier: MPL-2.0
+
 schema_version = 1
 
 [project]
-name = "Helix Platform Doctor"
+name = "Samsarix Platform Doctor"
 requires_python = ">=3.11"
 
 [[components]]
-name = "Helix Platform Doctor package"
-distribution = "helix-platform"
+name = "Samsarix Platform Doctor package"
+distribution = "samsarix-platform"
 required = true
 description = "The installed CLI distribution"
 
@@ -21,6 +24,6 @@ required = true
 description = "Build and package metadata"
 
 [[files]]
-path = "src/helix_platform/cli.py"
+path = "src/samsarix_platform/cli.py"
 required = true
 description = "CLI entry point"

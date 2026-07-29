@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Samsarix LLC
+# SPDX-License-Identifier: MPL-2.0
+
 from __future__ import annotations
 
 import contextlib
@@ -10,7 +13,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from helix_platform.cli import main
+from samsarix_platform.cli import main
 
 
 class CliTests(unittest.TestCase):
@@ -30,7 +33,7 @@ class CliTests(unittest.TestCase):
         return exit_code, stdout.getvalue(), stderr.getvalue()
 
     def test_init_creates_a_manifest_that_is_immediately_checkable(self) -> None:
-        manifest = self.root / "helix-stack.toml"
+        manifest = self.root / "samsarix-stack.toml"
 
         init_code, init_output, init_error = self.invoke(
             ["init", str(manifest), "--name", "Example Agent"]
@@ -45,7 +48,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(doctor_error, "")
 
     def test_init_refuses_to_overwrite_existing_content(self) -> None:
-        manifest = self.root / "helix-stack.toml"
+        manifest = self.root / "samsarix-stack.toml"
         manifest.write_text("do not replace\n", encoding="utf-8")
 
         exit_code, _, error = self.invoke(["init", str(manifest)])
@@ -57,7 +60,7 @@ class CliTests(unittest.TestCase):
     def test_init_refuses_a_dangling_symlink_without_creating_its_target(self) -> None:
         target = self.root.parent / f"{self.root.name}-outside.toml"
         self.addCleanup(target.unlink, missing_ok=True)
-        link = self.root / "helix-stack.toml"
+        link = self.root / "samsarix-stack.toml"
         try:
             link.symlink_to(target)
         except OSError as exc:
@@ -88,20 +91,20 @@ class CliTests(unittest.TestCase):
         self.assertEqual(error, "")
 
     def test_valid_doctor_json_is_machine_readable(self) -> None:
-        manifest = self.root / "helix-stack.toml"
+        manifest = self.root / "samsarix-stack.toml"
         self.invoke(["init", str(manifest), "--name", "JSON Example"])
 
         exit_code, output, error = self.invoke(["doctor", str(manifest), "--json"])
 
         payload = json.loads(output)
         self.assertEqual(exit_code, 0)
-        self.assertEqual(payload["schema"], "helix-platform-doctor/v1")
+        self.assertEqual(payload["schema"], "samsarix-platform-doctor/v1")
         self.assertEqual(payload["status"], "ready")
         self.assertEqual(payload["project"], "JSON Example")
         self.assertEqual(error, "")
 
     def test_init_reports_a_missing_destination_directory(self) -> None:
-        destination = self.root / "missing" / "helix-stack.toml"
+        destination = self.root / "missing" / "samsarix-stack.toml"
 
         exit_code, _, error = self.invoke(["init", str(destination)])
 
@@ -111,14 +114,14 @@ class CliTests(unittest.TestCase):
     def test_module_entry_point_reports_version(self) -> None:
         stdout = io.StringIO()
         with (
-            mock.patch.object(sys, "argv", ["helix-platform", "--version"]),
+            mock.patch.object(sys, "argv", ["samsarix-platform", "--version"]),
             contextlib.redirect_stdout(stdout),
             self.assertRaises(SystemExit) as raised,
         ):
-            runpy.run_module("helix_platform", run_name="__main__")
+            runpy.run_module("samsarix_platform", run_name="__main__")
 
         self.assertEqual(raised.exception.code, 0)
-        self.assertIn("helix-platform 0.1.0", stdout.getvalue())
+        self.assertIn("samsarix-platform 0.1.0", stdout.getvalue())
 
 
 if __name__ == "__main__":

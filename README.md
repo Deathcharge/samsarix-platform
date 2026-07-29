@@ -1,14 +1,14 @@
-# Helix Platform Doctor
+# Samsarix Platform Doctor
 
-Helix Platform Doctor is a local command-line tool that checks whether a Python multi-agent project has the runtime, installed packages, configuration names, and files it declares.
+Samsarix Platform Doctor is a local command-line tool from **Samsarix LLC** that checks whether a Python multi-agent project has the runtime, installed packages, configuration names, and files it declares.
 
-It is for developers who want an actionable preflight before starting an agent application or running its CI—not another agent framework, hosted service, or replacement for [`helix-unified`](https://github.com/Deathcharge/helix-unified).
+It is for developers who want an actionable preflight before starting an agent application or running its CI—not another agent framework or hosted service.
 
-> Status: `0.1.0` pre-release. The core local workflow is implemented and tested, but the package has not been published. License selection and publication are owner-controlled release gates.
+> Status: `0.1.0` pre-release. The core local workflow is implemented, tested, and licensed under MPL 2.0, but the package has not been published.
 
 ## What it does
 
-Given a versioned `helix-stack.toml`, `helix-platform doctor` checks:
+Given a versioned `samsarix-stack.toml`, `samsarix-platform doctor` checks:
 
 - the active Python version;
 - whether declared Python distributions are installed;
@@ -22,8 +22,8 @@ It produces human-readable output by default and stable JSON for automation. It 
 Prerequisite: Python 3.11 or newer.
 
 ```console
-git clone https://github.com/Deathcharge/helix-platform.git
-cd helix-platform
+git clone https://github.com/Deathcharge/samsarix-platform.git
+cd samsarix-platform
 python -m venv .venv
 ```
 
@@ -41,7 +41,7 @@ Install and check this repository's manifest:
 
 ```console
 python -m pip install .
-helix-platform doctor
+samsarix-platform doctor
 ```
 
 Expected summary:
@@ -51,7 +51,7 @@ Summary: 5 passed, 0 warned, 0 failed
 Result: READY
 ```
 
-No API key, external Helix repository, database, container runtime, or cloud account is required.
+No API key, external Samsarix service, database, container runtime, or cloud account is required.
 
 ## Use it in another project
 
@@ -59,8 +59,8 @@ Generate a starter manifest without overwriting existing content:
 
 ```console
 cd your-agent-project
-helix-platform init
-helix-platform doctor
+samsarix-platform init
+samsarix-platform doctor
 ```
 
 Then add the checks your project actually requires:
@@ -90,30 +90,30 @@ required = true
 Run the check:
 
 ```console
-helix-platform doctor
+samsarix-platform doctor
 ```
 
 Use strict mode in CI when optional warnings should also block readiness:
 
 ```console
-helix-platform doctor --strict
+samsarix-platform doctor --strict
 ```
 
 Use JSON when another tool needs the result:
 
 ```console
-helix-platform doctor --json
+samsarix-platform doctor --json
 ```
 
-See the runnable [example agent-project manifest](examples/agent-project/helix-stack.toml).
+See the runnable [example agent-project manifest](examples/agent-project/samsarix-stack.toml).
 
 ## Command reference
 
 ```text
-helix-platform --help
-helix-platform --version
-helix-platform init [PATH] [--name NAME]
-helix-platform doctor [MANIFEST] [--json] [--strict]
+samsarix-platform --help
+samsarix-platform --version
+samsarix-platform init [PATH] [--name NAME]
+samsarix-platform doctor [MANIFEST] [--json] [--strict]
 ```
 
 `init` uses exclusive file creation and exits `2` rather than replacing an existing path or following an existing destination symlink.
@@ -161,7 +161,7 @@ python -m coverage run -m unittest discover -s tests
 python -m coverage report
 python -m build
 python -m twine check dist/*
-helix-platform doctor helix-stack.toml --strict
+samsarix-platform doctor samsarix-stack.toml --strict
 ```
 
 The runtime has no third-party dependencies. `requirements-dev.txt` is tooling-only and exactly pinned for repeatable contributor and CI checks.
@@ -170,7 +170,7 @@ The runtime has no third-party dependencies. `requirements-dev.txt` is tooling-o
 
 `pyproject.toml` defines the package, `src/` layout, typed-package marker, and console entry point. A source distribution and universal wheel can be built with `python -m build`. The wheel must be installed into a fresh virtual environment and smoke-tested before release.
 
-Publication is not automated. See [the release guide](docs/RELEASING.md) for the verified local process and the owner-controlled PyPI, license, and signing gates.
+Publication is not automated. See [the release guide](docs/RELEASING.md) for the verified local process and the owner-controlled PyPI, trusted-publishing, and signing gates.
 
 ## Architecture
 
@@ -195,7 +195,7 @@ See [the architecture guide](docs/ARCHITECTURE.md) for data flow, trust boundari
 
 The manifest, variable names, project name, and checked file paths are still local project metadata; treat JSON reports accordingly. A passing report establishes only the declared presence checks, not credential validity, API compatibility, application correctness, or production safety.
 
-If you find a vulnerability, prefer GitHub private vulnerability reporting when it is enabled for this repository. Do not put secrets or exploit details in a public issue. The owner still needs to publish a dedicated private security contact.
+Report vulnerabilities privately to [support@samsarix.com](mailto:support@samsarix.com) or through GitHub private vulnerability reporting when it is enabled. Do not put secrets or exploit details in a public issue. See [SECURITY.md](SECURITY.md) for the reporting scope.
 
 ## Limitations and deliberate non-goals
 
@@ -208,8 +208,10 @@ If you find a vulnerability, prefer GitHub private vulnerability reporting when 
 
 These boundaries keep the first release predictable and safe. Proposed extensions are prioritized in [the productization record](docs/PRODUCTIZATION.md).
 
-## Contributing and project status
+## License, attribution, and contact
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the real setup and quality commands and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for participation expectations.
+Copyright (c) 2026 Samsarix LLC. The source is licensed under the [Mozilla Public License 2.0](LICENSE). Distributed modifications to covered files remain under MPL 2.0, while the license permits use in a larger work under separate terms. The license does not grant rights to Samsarix names or logos; see [NOTICE.md](NOTICE.md).
 
-This repository currently has no `LICENSE` file. No open-source license or commercial-use permission is asserted; selecting one is an owner decision required before public package publication or third-party reuse. The historical documentation's contradictory license claims were removed.
+General inquiries: [contact@samsarix.com](mailto:contact@samsarix.com). Product support: [support@samsarix.com](mailto:support@samsarix.com).
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and quality commands and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for participation expectations.

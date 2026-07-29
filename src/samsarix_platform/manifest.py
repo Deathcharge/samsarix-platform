@@ -1,4 +1,7 @@
-"""Strict parsing for the versioned ``helix-stack.toml`` format."""
+# Copyright (c) 2026 Samsarix LLC
+# SPDX-License-Identifier: MPL-2.0
+
+"""Strict parsing for the versioned ``samsarix-stack.toml`` format."""
 
 from __future__ import annotations
 
@@ -70,7 +73,7 @@ class Manifest:
 
 
 def load_manifest(path: Path) -> Manifest:
-    """Load and validate a Helix stack manifest from ``path``."""
+    """Load and validate a Samsarix stack manifest from ``path``."""
 
     try:
         manifest_path = path.expanduser().resolve()

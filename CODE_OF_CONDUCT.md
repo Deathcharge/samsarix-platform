@@ -24,4 +24,4 @@ Project spaces should be welcoming, professional, and free from harassment. Part
 
 This code applies in repository issues, pull requests, discussions, and other official project spaces. Maintainers may edit or remove contributions, restrict participation, or ban participants when necessary to protect the community.
 
-Use GitHub's report/block controls for urgent platform abuse. The repository owner still needs to publish a verified private conduct-reporting channel; the historical unverified project-domain email was removed. Until then, contact the repository owner through GitHub when doing so is safe. Do not disclose secrets or sensitive personal information in a public issue.
+Use GitHub's report/block controls for urgent platform abuse. Report project conduct concerns privately to [support@samsarix.com](mailto:support@samsarix.com) with the subject `Conduct: Samsarix Platform Doctor`. Do not disclose secrets or sensitive personal information in a public issue.

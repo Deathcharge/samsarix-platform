@@ -1,14 +1,14 @@
 # Contributing
 
-Helix Platform Doctor is a small, local-first CLI. Contributions should preserve its narrow scope, deterministic behavior, and no-network/no-secret-output defaults.
+Samsarix Platform Doctor is a small, local-first CLI. Contributions should preserve its narrow scope, deterministic behavior, and no-network/no-secret-output defaults.
 
 ## Setup
 
 Python 3.11 or newer is required.
 
 ```console
-git clone https://github.com/Deathcharge/helix-platform.git
-cd helix-platform
+git clone https://github.com/Deathcharge/samsarix-platform.git
+cd samsarix-platform
 python -m venv .venv
 ```
 
@@ -32,7 +32,7 @@ python -m coverage run -m unittest discover -s tests
 python -m coverage report
 python -m build
 python -m twine check dist/*
-helix-platform doctor helix-stack.toml --strict
+samsarix-platform doctor samsarix-stack.toml --strict
 ```
 
 CI runs the unit tests and installed CLI journey on Windows and Linux, then repeats lint, type, coverage, and build checks on Linux.
@@ -66,8 +66,10 @@ Do not include secrets, generated `dist/` artifacts, local virtual environments,
 
 Use GitHub Issues for reproducible bugs and bounded feature proposals. Include the operating system, Python version, command, manifest with secrets removed, exit code, and expected versus actual result.
 
-For vulnerabilities, use GitHub private vulnerability reporting when available and do not post exploit details or secrets publicly. A dedicated private contact remains an owner setup item.
+For vulnerabilities, email [support@samsarix.com](mailto:support@samsarix.com) or use GitHub private vulnerability reporting when available. Do not post exploit details or secrets publicly. See [SECURITY.md](SECURITY.md).
 
-## License status
+For general project or partnership questions, email [contact@samsarix.com](mailto:contact@samsarix.com).
 
-This repository does not currently include a license. Contribution and redistribution terms therefore need owner clarification; submitting a contribution does not create or imply license terms that the repository has not adopted.
+## Contribution license
+
+This project is licensed under the [Mozilla Public License 2.0](LICENSE). By submitting a contribution, you agree that it is available under MPL 2.0 and represent that you have the right to provide it. Copyright in a contribution remains with its copyright holder unless a separate written agreement says otherwise. New Python files should include `SPDX-License-Identifier: MPL-2.0`; add an accurate copyright notice when appropriate.
