@@ -24,7 +24,7 @@ samsarix-platform doctor
 The repository manifest should finish with:
 
 ```text
-Summary: 5 passed, 0 warned, 0 failed
+Summary: 6 passed, 0 warned, 0 failed
 Result: READY
 ```
 
@@ -36,7 +36,7 @@ samsarix-platform init
 samsarix-platform doctor
 ```
 
-`init` creates only a project and Python requirement. Edit `samsarix-stack.toml` to declare packages, environment variables, and files your application genuinely needs. It refuses to overwrite an existing file.
+`init` creates only a project and Python requirement. Edit `samsarix-stack.toml` to declare compatible package versions, executable tools, environment variables, and files your application genuinely needs. It refuses to overwrite an existing file.
 
 ## Try the example
 

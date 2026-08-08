@@ -121,7 +121,7 @@ class CliTests(unittest.TestCase):
             runpy.run_module("samsarix_platform", run_name="__main__")
 
         self.assertEqual(raised.exception.code, 0)
-        self.assertIn("samsarix-platform 0.1.0", stdout.getvalue())
+        self.assertIn("samsarix-platform 0.2.0", stdout.getvalue())
 
 
 if __name__ == "__main__":

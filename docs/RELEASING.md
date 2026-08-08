@@ -4,7 +4,7 @@ Samsarix Platform Doctor is distributed as a Python source archive and universal
 
 ## Current release disposition
 
-Version `0.1.0` is a pre-release candidate. Local build and verification are implemented. Public publication remains blocked on owner decisions and external setup:
+Version `0.2.0` is a pre-release candidate. Local build and verification are implemented. Public publication remains blocked on owner decisions and external setup:
 
 - confirm or claim the `samsarix-platform` distribution name immediately before release;
 - configure the owner's PyPI project and trusted publisher;

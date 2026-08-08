@@ -1,17 +1,18 @@
 # Samsarix Platform Doctor
 
-Samsarix Platform Doctor is a local command-line tool from **Samsarix LLC** that checks whether a Python multi-agent project has the runtime, installed packages, configuration names, and files it declares.
+Samsarix Platform Doctor is a local command-line tool from **Samsarix LLC** that checks whether a Python multi-agent project has the runtime, compatible installed packages, executable tools, configuration names, and files it declares.
 
 It is for developers who want an actionable preflight before starting an agent application or running its CI—not another agent framework or hosted service.
 
-> Status: `0.1.0` pre-release. The core local workflow is implemented, tested, and licensed under MPL 2.0, but the package has not been published.
+> Status: `0.2.0` pre-release. The core local workflow is implemented, tested, and licensed under MPL 2.0, but the package has not been published.
 
 ## What it does
 
 Given a versioned `samsarix-stack.toml`, `samsarix-platform doctor` checks:
 
 - the active Python version;
-- whether declared Python distributions are installed;
+- whether declared Python distributions are installed at compatible PEP 440 versions;
+- whether declared executable commands are available on `PATH`;
 - whether declared environment variables are present;
 - whether declared project-relative files or directories exist.
 
@@ -47,7 +48,7 @@ samsarix-platform doctor
 Expected summary:
 
 ```text
-Summary: 5 passed, 0 warned, 0 failed
+Summary: 6 passed, 0 warned, 0 failed
 Result: READY
 ```
 
@@ -66,7 +67,7 @@ samsarix-platform doctor
 Then add the checks your project actually requires:
 
 ```toml
-schema_version = 1
+schema_version = 2
 
 [project]
 name = "research-agent"
@@ -75,6 +76,12 @@ requires_python = ">=3.11"
 [[components]]
 name = "OpenAI Python SDK"
 distribution = "openai"
+version = ">=1,<3"
+required = true
+
+[[executables]]
+name = "Git"
+command = "git"
 required = true
 
 [[environment]]
@@ -126,20 +133,21 @@ samsarix-platform doctor [MANIFEST] [--json] [--strict]
 | `1` | A required check failed, or an optional check warned under `--strict`. |
 | `2` | The command usage or manifest is invalid, unreadable, missing, or unsafe. |
 
-### Manifest schema version 1
+### Manifest schema version 2
 
 Unknown keys and duplicate declarations are errors so misspellings do not silently weaken a check.
 Manifests must be UTF-8, are limited to 1 MiB, and cannot place control/formatting characters in rendered fields.
 
 | Section | Fields | Behavior |
 | --- | --- | --- |
-| root | `schema_version = 1` | Required. Other versions fail explicitly. |
+| root | `schema_version = 2` | Required. Version 1 remains supported; unsupported versions fail explicitly. |
 | `[project]` | `name`, `requires_python` | Both required. Python constraints support `>=MAJOR.MINOR[.PATCH]`. |
-| `[[components]]` | `name`, `distribution`, `required`, `description` | Checks installed distribution metadata without importing code. `required` defaults to `true`. |
+| `[[components]]` | `name`, `distribution`, `version`, `required`, `description` | Checks installed distribution metadata without importing code. `version` is an optional PEP 440 specifier such as `>=1,<3`; `required` defaults to `true`. |
+| `[[executables]]` | `name`, `command`, `required`, `description` | Checks whether a portable command name is discoverable on `PATH` without executing it. `required` defaults to `true`. |
 | `[[environment]]` | `name`, `required`, `secret`, `description` | Checks for a nonblank process environment value. Values are never reported. Both booleans default to `true`. |
 | `[[files]]` | `path`, `required`, `description` | Uses portable forward-slash paths contained by the manifest directory. `required` defaults to `true`. |
 
-Descriptions are documentation metadata for the manifest. Version 1 intentionally does not execute commands, inspect file contents, contact endpoints, or validate package APIs.
+Descriptions are documentation metadata for the manifest. Version 2 intentionally does not execute commands, inspect file contents, contact endpoints, or validate package APIs. Version 1 manifests continue to work unchanged but cannot declare version constraints or executables.
 
 ## Development
 
@@ -164,7 +172,7 @@ python -m twine check dist/*
 samsarix-platform doctor samsarix-stack.toml --strict
 ```
 
-The runtime has no third-party dependencies. `requirements-dev.txt` is tooling-only and exactly pinned for repeatable contributor and CI checks.
+The runtime uses PyPA's `packaging` library for standards-compliant PEP 440 evaluation. `requirements-dev.txt` is tooling-only and exactly pinned for repeatable contributor and CI checks.
 
 ## Packaging and release
 

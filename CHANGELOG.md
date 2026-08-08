@@ -6,6 +6,17 @@ All notable changes to Samsarix Platform Doctor are documented here.
 
 ### Added
 
+- Manifest schema version 2 with standards-compliant PEP 440 distribution constraints.
+- Read-only executable availability checks that never launch declared commands.
+- Manifest schema version in successful JSON reports for contract-aware automation.
+
+### Changed
+
+- `init` now creates version 2 manifests; version 1 manifests remain supported unchanged.
+- Package version advanced to `0.2.0` and now depends on PyPA `packaging`.
+
+### Added
+
 - Local `doctor` command with human and JSON output.
 - Non-overwriting `init` command and versioned TOML manifest.
 - Python, installed-distribution, environment-presence, and contained-file checks.

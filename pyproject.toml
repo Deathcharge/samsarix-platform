@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "samsarix-platform"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local readiness checks for Python multi-agent projects"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -32,7 +32,7 @@ classifiers = [
   "Typing :: Typed",
 ]
 keywords = ["agents", "configuration", "diagnostics", "readiness"]
-dependencies = []
+dependencies = ["packaging>=24.0"]
 
 [project.urls]
 Homepage = "https://www.samsarix.com"

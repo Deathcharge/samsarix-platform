@@ -142,7 +142,7 @@ def _run_init(destination: Path, *, project_name: str | None) -> int:
 def _starter_manifest(project_name: str) -> str:
     encoded_name = json.dumps(project_name, ensure_ascii=False)
     return f"""# Samsarix Platform Doctor manifest
-schema_version = 1
+schema_version = 2
 
 [project]
 name = {encoded_name}
@@ -152,6 +152,12 @@ requires_python = ">=3.11"
 # [[components]]
 # name = "Model provider SDK"
 # distribution = "openai"
+# version = ">=1,<2"
+# required = true
+#
+# [[executables]]
+# name = "Git"
+# command = "git"
 # required = true
 #
 # [[environment]]

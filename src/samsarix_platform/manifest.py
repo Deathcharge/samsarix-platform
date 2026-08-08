@@ -12,10 +12,14 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import cast
 
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
+
 _PYTHON_REQUIREMENT = re.compile(r">=(\d+)\.(\d+)(?:\.(\d+))?\Z")
 _ENVIRONMENT_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
 _DISTRIBUTION_NAME = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?\Z")
+_EXECUTABLE_COMMAND = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._+-]*[A-Za-z0-9])?\Z")
 MAX_MANIFEST_BYTES = 1_048_576
+SUPPORTED_SCHEMA_VERSIONS = frozenset({1, 2})
 
 
 class ManifestError(ValueError):
@@ -37,6 +41,17 @@ class ComponentSpec:
 
     name: str
     distribution: str
+    required: bool
+    description: str | None
+    version: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class ExecutableSpec:
+    """An executable command expected to be available on ``PATH``."""
+
+    name: str
+    command: str
     required: bool
     description: str | None
 
@@ -62,12 +77,13 @@ class FileSpec:
 
 @dataclass(frozen=True, slots=True)
 class Manifest:
-    """A fully validated version 1 project manifest."""
+    """A fully validated, supported project manifest."""
 
     path: Path
     schema_version: int
     project: ProjectSpec
     components: tuple[ComponentSpec, ...]
+    executables: tuple[ExecutableSpec, ...]
     environment: tuple[EnvironmentSpec, ...]
     files: tuple[FileSpec, ...]
 
@@ -103,18 +119,22 @@ def load_manifest(path: Path) -> Manifest:
         raise ManifestError(f"invalid TOML in {manifest_path}: {exc}") from exc
 
     root = _as_table(raw, "manifest")
-    _reject_unknown(
-        root, {"schema_version", "project", "components", "environment", "files"}, "manifest"
-    )
-
     schema_version = root.get("schema_version")
     if type(schema_version) is not int:
-        raise ManifestError("manifest.schema_version must be the integer 1")
-    if schema_version != 1:
-        raise ManifestError(f"unsupported manifest.schema_version {schema_version}; expected 1")
+        raise ManifestError("manifest.schema_version must be an integer")
+    if schema_version not in SUPPORTED_SCHEMA_VERSIONS:
+        supported = ", ".join(str(version) for version in sorted(SUPPORTED_SCHEMA_VERSIONS))
+        raise ManifestError(
+            f"unsupported manifest.schema_version {schema_version}; expected one of: {supported}"
+        )
+    root_keys = {"schema_version", "project", "components", "environment", "files"}
+    if schema_version >= 2:
+        root_keys.add("executables")
+    _reject_unknown(root, root_keys, "manifest")
 
     project = _parse_project(root.get("project"))
-    components = _parse_components(root.get("components", []))
+    components = _parse_components(root.get("components", []), schema_version=schema_version)
+    executables = _parse_executables(root.get("executables", []))
     environment = _parse_environment(root.get("environment", []))
     files = _parse_files(root.get("files", []))
 
@@ -123,6 +143,7 @@ def load_manifest(path: Path) -> Manifest:
         schema_version=schema_version,
         project=project,
         components=components,
+        executables=executables,
         environment=environment,
         files=files,
     )
@@ -147,14 +168,17 @@ def _parse_project(value: object) -> ProjectSpec:
     )
 
 
-def _parse_components(value: object) -> tuple[ComponentSpec, ...]:
+def _parse_components(value: object, *, schema_version: int) -> tuple[ComponentSpec, ...]:
     items = _as_array(value, "manifest.components")
     parsed: list[ComponentSpec] = []
     identities: set[str] = set()
     for index, item in enumerate(items):
         section = f"manifest.components[{index}]"
         table = _as_table(item, section)
-        _reject_unknown(table, {"name", "distribution", "required", "description"}, section)
+        keys = {"name", "distribution", "required", "description"}
+        if schema_version >= 2:
+            keys.add("version")
+        _reject_unknown(table, keys, section)
         name = _required_string(table, "name", section)
         distribution = _required_string(table, "distribution", section)
         if _DISTRIBUTION_NAME.fullmatch(distribution) is None:
@@ -163,10 +187,44 @@ def _parse_components(value: object) -> tuple[ComponentSpec, ...]:
         if identity in identities:
             raise ManifestError(f"{section}.distribution duplicates {distribution!r}")
         identities.add(identity)
+        version = _optional_string(table, "version", section)
+        if version is not None:
+            try:
+                SpecifierSet(version)
+            except InvalidSpecifier as exc:
+                raise ManifestError(f"{section}.version is not a valid PEP 440 specifier") from exc
         parsed.append(
             ComponentSpec(
                 name=name,
                 distribution=distribution,
+                required=_optional_bool(table, "required", section, default=True),
+                description=_optional_string(table, "description", section),
+                version=version,
+            )
+        )
+    return tuple(parsed)
+
+
+def _parse_executables(value: object) -> tuple[ExecutableSpec, ...]:
+    items = _as_array(value, "manifest.executables")
+    parsed: list[ExecutableSpec] = []
+    identities: set[str] = set()
+    for index, item in enumerate(items):
+        section = f"manifest.executables[{index}]"
+        table = _as_table(item, section)
+        _reject_unknown(table, {"name", "command", "required", "description"}, section)
+        name = _required_string(table, "name", section)
+        command = _required_string(table, "command", section)
+        if _EXECUTABLE_COMMAND.fullmatch(command) is None:
+            raise ManifestError(f"{section}.command must be a portable executable name")
+        identity = command.casefold()
+        if identity in identities:
+            raise ManifestError(f"{section}.command duplicates {command!r}")
+        identities.add(identity)
+        parsed.append(
+            ExecutableSpec(
+                name=name,
+                command=command,
                 required=_optional_bool(table, "required", section, default=True),
                 description=_optional_string(table, "description", section),
             )
