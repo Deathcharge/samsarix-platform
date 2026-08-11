@@ -6,7 +6,7 @@ This roadmap separates four gates: merge, release, publication, and flagship ado
 
 Portfolio role: **internal infrastructure**. Use this to improve the portfolio through immutable, reviewed automation or internal deployments. It must not become a hidden runtime dependency for customer-facing products.
 
-Current disposition: Merge as a prerelease-quality foundation after the focused merge gates pass; release remains blocked on the items below.
+Current disposition: publish the repository as an MPL-2.0 open-source prerelease and merge only after the focused source, package, and hosted-CI gates pass. PyPI publication remains a separate owner-controlled milestone.
 
 ## Stabilize the productized default
 
@@ -14,8 +14,9 @@ Current disposition: Merge as a prerelease-quality foundation after the focused 
 - Keep Samsarix LLC branding, package identity, license metadata, and compatibility aliases internally consistent.
 - Preserve the pre-productization default under a rollback ref before merging; do not delete legacy history.
 - Locally reproduced in this pass: unit tests, formatting, lint, types, 90% coverage, and package build pass.
-- Next: adopt one real manifest consumer and treat hosted zero-runner failures as infrastructure, not product failures.
-- Review priority: Diagnose pre-step hosted CI failures, adopt one real manifest consumer, and require green exact-head wheel/CLI checks before release.
+- Environment contract v2 now validates PEP 440 distribution ranges and read-only executable availability while preserving schema v1 compatibility.
+- Next: use public-repository Actions to establish exact-head CI, then adopt one real manifest consumer through an immutable revision.
+- Review priority: green exact-head wheel/CLI checks, real consumer adoption, then package-publication provenance.
 
 ## Release candidate
 
@@ -25,11 +26,12 @@ Current disposition: Merge as a prerelease-quality foundation after the focused 
 
 Current hardening backlog:
 
-- Hosted CI is red at the exact inspected SHA and gives no diagnostic steps/logs.
-- Checks only presence, not component versions, executable/API compatibility, credential validity, or service reachability.
+- Private-repository CI was blocked before runner startup by the account billing setting; public standard GitHub-hosted runners avoid paid Actions minutes.
+- Executable checks establish safe `PATH` discovery only; they do not execute tools to probe their versions or APIs.
+- Credential validity, package API compatibility, and service reachability are not checked.
 - No evidenced adopter, public package, tag, release, or stable schema consumer.
 - The `samsarix-platform` name still suggests a broader platform than the implemented doctor command.
-- Package identity, private-repository visibility, and MPL publication authority need owner review.
+- PyPI namespace ownership, trusted publishing, provenance, and first-release authority remain owner gates.
 
 ## Samsarix adoption
 

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,7 +11,7 @@ from pathlib import Path
 from samsarix_platform.manifest import MAX_MANIFEST_BYTES, ManifestError, load_manifest
 
 VALID_MANIFEST = """\
-schema_version = 1
+schema_version = 2
 
 [project]
 name = "Example"
@@ -19,7 +20,13 @@ requires_python = ">=3.11"
 [[components]]
 name = "Example package"
 distribution = "example-package"
+version = ">=1,<2"
 required = false
+
+[[executables]]
+name = "Git"
+command = "git"
+required = true
 
 [[environment]]
 name = "EXAMPLE_TOKEN"
@@ -51,10 +58,12 @@ class ManifestTests(unittest.TestCase):
 
         manifest = load_manifest(path)
 
-        self.assertEqual(manifest.schema_version, 1)
+        self.assertEqual(manifest.schema_version, 2)
         self.assertEqual(manifest.project.name, "Example")
         self.assertEqual(manifest.project.minimum_python, (3, 11, 0))
         self.assertEqual(manifest.components[0].distribution, "example-package")
+        self.assertEqual(manifest.components[0].version, ">=1,<2")
+        self.assertEqual(manifest.executables[0].command, "git")
         self.assertEqual(manifest.environment[0].name, "EXAMPLE_TOKEN")
         self.assertEqual(manifest.files[0].path, "README.md")
 
@@ -82,6 +91,10 @@ class ManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ManifestError, "path is a directory"):
             load_manifest(self.root)
 
+    def test_rejects_non_regular_manifest_files_without_reading_them(self) -> None:
+        with self.assertRaisesRegex(ManifestError, "not a regular file"):
+            load_manifest(Path(os.devnull))
+
     def test_rejects_oversized_manifests_before_parsing(self) -> None:
         path = self.root / "samsarix-stack.toml"
         path.write_bytes(b"#" * (MAX_MANIFEST_BYTES + 1))
@@ -96,6 +109,19 @@ class ManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ManifestError, "valid UTF-8"):
             load_manifest(path)
 
+    def test_deep_toml_nesting_is_a_structured_error(self) -> None:
+        nested = "[" * 2_000 + "0" + "]" * 2_000
+        path = self.write_manifest(f"schema_version = 2\nunknown = {nested}\n")
+
+        with self.assertRaisesRegex(ManifestError, "nesting is too deep"):
+            load_manifest(path)
+
+    def test_oversized_toml_integer_is_a_structured_error(self) -> None:
+        path = self.write_manifest(f"schema_version = {'9' * 5_000}\n")
+
+        with self.assertRaisesRegex(ManifestError, "invalid numeric value"):
+            load_manifest(path)
+
     def test_rejects_unknown_keys_instead_of_ignoring_typos(self) -> None:
         path = self.write_manifest(VALID_MANIFEST.replace("required = false", "requred = false"))
 
@@ -104,7 +130,7 @@ class ManifestTests(unittest.TestCase):
 
     def test_rejects_unsupported_schema_versions(self) -> None:
         path = self.write_manifest(
-            VALID_MANIFEST.replace("schema_version = 1", "schema_version = 2")
+            VALID_MANIFEST.replace("schema_version = 2", "schema_version = 3")
         )
 
         with self.assertRaisesRegex(ManifestError, "unsupported"):
@@ -112,11 +138,58 @@ class ManifestTests(unittest.TestCase):
 
     def test_rejects_non_integer_schema_versions(self) -> None:
         path = self.write_manifest(
-            VALID_MANIFEST.replace("schema_version = 1", 'schema_version = "1"')
+            VALID_MANIFEST.replace("schema_version = 2", 'schema_version = "2"')
         )
 
-        with self.assertRaisesRegex(ManifestError, "must be the integer 1"):
+        with self.assertRaisesRegex(ManifestError, "must be an integer"):
             load_manifest(path)
+
+    def test_version_one_manifests_remain_supported(self) -> None:
+        content = VALID_MANIFEST.replace("schema_version = 2", "schema_version = 1")
+        content = content.replace('version = ">=1,<2"\n', "")
+        executable_start = content.index("[[executables]]")
+        environment_start = content.index("[[environment]]")
+        content = content[:executable_start] + content[environment_start:]
+
+        manifest = load_manifest(self.write_manifest(content))
+
+        self.assertEqual(manifest.schema_version, 1)
+        self.assertIsNone(manifest.components[0].version)
+        self.assertEqual(manifest.executables, ())
+
+    def test_rejects_v2_fields_in_a_v1_manifest(self) -> None:
+        content = VALID_MANIFEST.replace("schema_version = 2", "schema_version = 1")
+
+        with self.assertRaisesRegex(ManifestError, "unknown key"):
+            load_manifest(self.write_manifest(content))
+
+    def test_rejects_invalid_component_version_specifiers(self) -> None:
+        content = VALID_MANIFEST.replace('version = ">=1,<2"', 'version = "not a version"')
+
+        with self.assertRaisesRegex(ManifestError, "PEP 440"):
+            load_manifest(self.write_manifest(content))
+
+    def test_rejects_oversized_component_version_specifiers(self) -> None:
+        content = VALID_MANIFEST.replace('version = ">=1,<2"', f'version = ">={"1" * 300}"')
+
+        with self.assertRaisesRegex(ManifestError, "character limit"):
+            load_manifest(self.write_manifest(content))
+
+    def test_rejects_executable_paths_and_duplicate_commands(self) -> None:
+        invalid = VALID_MANIFEST.replace('command = "git"', 'command = "../git"')
+        with self.assertRaisesRegex(ManifestError, "portable executable"):
+            load_manifest(self.write_manifest(invalid))
+
+        duplicate = (
+            VALID_MANIFEST
+            + """
+[[executables]]
+name = "Duplicate Git"
+command = "GIT"
+"""
+        )
+        with self.assertRaisesRegex(ManifestError, "duplicates"):
+            load_manifest(self.write_manifest(duplicate))
 
     def test_rejects_non_array_component_sections(self) -> None:
         path = self.write_manifest(VALID_MANIFEST.replace("[[components]]", "[components]", 1))
@@ -129,6 +202,17 @@ class ManifestTests(unittest.TestCase):
 [[components]]
 name = "Duplicate"
 distribution = "EXAMPLE-PACKAGE"
+"""
+        path = self.write_manifest(VALID_MANIFEST + duplicate)
+
+        with self.assertRaisesRegex(ManifestError, "duplicates"):
+            load_manifest(path)
+
+    def test_rejects_pep_503_equivalent_distribution_names(self) -> None:
+        duplicate = """
+[[components]]
+name = "Duplicate"
+distribution = "example.package"
 """
         path = self.write_manifest(VALID_MANIFEST + duplicate)
 
@@ -159,6 +243,12 @@ distribution = "EXAMPLE-PACKAGE"
 
     def test_requires_a_constrained_python_version(self) -> None:
         path = self.write_manifest(VALID_MANIFEST.replace(">=3.11", "3.11"))
+
+        with self.assertRaisesRegex(ManifestError, "form >=MAJOR.MINOR"):
+            load_manifest(path)
+
+    def test_rejects_oversized_python_version_components(self) -> None:
+        path = self.write_manifest(VALID_MANIFEST.replace(">=3.11", f">={'3' * 1_000}.11"))
 
         with self.assertRaisesRegex(ManifestError, "form >=MAJOR.MINOR"):
             load_manifest(path)

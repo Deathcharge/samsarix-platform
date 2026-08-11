@@ -11,12 +11,14 @@ flowchart LR
     C --> D["Validated immutable manifest"]
     D --> E["Python check"]
     D --> F["Distribution metadata checks"]
-    D --> G["Environment presence checks"]
-    D --> H["Contained file checks"]
+    D --> G["Executable PATH checks"]
+    D --> H["Environment presence checks"]
+    D --> L["Contained file checks"]
     E --> I["Doctor report"]
     F --> I
     G --> I
     H --> I
+    L --> I
     I --> J["Human output or JSON"]
     J --> K["Exit 0, 1, or 2"]
 ```
@@ -43,26 +45,31 @@ For `init`, a relative user-selected destination is joined lexically to the curr
 
 ## Manifest contract
 
-Schema version 1 supports four inputs:
+Schema version 2 supports five inputs:
 
 - project name and minimum Python version;
-- installed distribution names;
+- installed distribution names and optional PEP 440 version specifiers;
+- executable command names discoverable on `PATH`;
 - process environment-variable names;
 - project-relative file or directory paths.
 
-The schema deliberately rejects unknown keys, duplicate identities, nonportable environment names, invalid distribution names, control/formatting characters, backslash file paths, absolute paths, `..`, and unsupported versions. Manifests must be UTF-8 and are limited to 1 MiB. This makes configuration mistakes visible, prevents terminal-output forgery, bounds parser memory, and keeps the first version easy to reason about.
+The schema deliberately rejects unknown keys, duplicate identities, nonportable environment names, invalid distribution names, control/formatting characters, backslash file paths, absolute paths, `..`, and unsupported versions. Manifests must be regular UTF-8 files and are limited to 1 MiB. Parser recursion and numeric-conversion limits become structured input errors. This makes configuration mistakes visible, prevents blocking special-file reads, bounds parser memory, and keeps the contract easy to reason about.
 
-The minimum Python constraint is intentionally limited to `>=MAJOR.MINOR[.PATCH]`. General PEP 440 range evaluation would require more policy and a runtime dependency; add it only with a schema-version decision and compatibility tests.
+The minimum Python constraint remains intentionally limited to `>=MAJOR.MINOR[.PATCH]`. Component versions use PyPA's standard PEP 440 `SpecifierSet`. Version 1 manifests remain supported but reject version and executable fields so typos cannot silently weaken older contracts.
 
 ## Trust boundaries
 
 ### Manifest boundary
 
-Treat the manifest as untrusted local input. The loader reads at most 1 MiB, schema processing is linear in the declared entries, and it performs no recursive evaluation, template expansion, deserialization hooks, or command execution.
+Treat the manifest as untrusted local input. The loader opens a regular file without following a path between validation and reading, reads at most 1 MiB, and turns parser resource-limit failures into structured errors. Schema processing is linear in the declared entries and performs no recursive evaluation, template expansion, deserialization hooks, or command execution.
 
 ### Component boundary
 
-A distribution name is passed only to `importlib.metadata.version`. The declared package is never imported, so package-level code cannot execute as a side effect of the check. Presence does not establish API compatibility or safety.
+A distribution name is passed only to `importlib.metadata.version`. The declared package is never imported, so package-level code cannot execute as a side effect of the check. Version compatibility does not establish API compatibility or safety.
+
+### Executable boundary
+
+An executable name is passed only to `shutil.which`. Commands must be portable bare names: paths, arguments, whitespace, and shell syntax are rejected. Samsarix never launches the discovered executable.
 
 ### Environment boundary
 
@@ -74,7 +81,7 @@ Manifest paths use POSIX separators and must be relative. Parsing rejects lexica
 
 ### Output boundary
 
-Reports contain project names, variable names, distribution names, installed versions, relative paths, and the absolute manifest path. These are not credential values but may still reveal project metadata. Consumers decide where JSON reports may be stored.
+Reports contain project names, variable names, distribution names, installed versions, relative paths, and the absolute manifest path. Human rendering escapes control and Unicode formatting characters from every dynamic value; JSON relies on JSON escaping. These fields are not credential values but may still reveal project metadata. Consumers decide where JSON reports may be stored.
 
 ## Failure and recovery behavior
 

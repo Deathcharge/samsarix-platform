@@ -7,16 +7,27 @@ from __future__ import annotations
 
 import importlib.metadata
 import os
+import shutil
 import sys
 from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
 from typing import Literal
 
+from packaging.specifiers import SpecifierSet
+from packaging.version import InvalidVersion, Version
+
 from samsarix_platform import __version__
-from samsarix_platform.manifest import ComponentSpec, EnvironmentSpec, FileSpec, Manifest
+from samsarix_platform.manifest import (
+    ComponentSpec,
+    EnvironmentSpec,
+    ExecutableSpec,
+    FileSpec,
+    Manifest,
+)
 
 CheckStatus = Literal["pass", "warn", "fail"]
+MAX_INSTALLED_VERSION_CHARS = 256
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,6 +47,7 @@ class DoctorReport:
     """All readiness results for one manifest snapshot."""
 
     manifest_path: Path
+    manifest_schema_version: int
     project_name: str
     checks: tuple[CheckResult, ...]
 
@@ -71,6 +83,7 @@ class DoctorReport:
             "schema": "samsarix-platform-doctor/v1",
             "tool_version": __version__,
             "manifest": str(self.manifest_path),
+            "manifest_schema_version": self.manifest_schema_version,
             "project": self.project_name,
             "strict": strict,
             "status": self.status(strict=strict),
@@ -86,8 +99,9 @@ def run_checks(
     environ: Mapping[str, str] | None = None,
     python_version: tuple[int, int, int] | None = None,
     version_lookup: Callable[[str], str] = importlib.metadata.version,
+    executable_lookup: Callable[[str], str | None] = shutil.which,
 ) -> DoctorReport:
-    """Evaluate all declared checks without importing components or making network calls."""
+    """Evaluate checks without imports, subprocesses, network calls, or secret disclosure."""
 
     active_environment = os.environ if environ is None else environ
     active_python = (
@@ -98,11 +112,13 @@ def run_checks(
     checks: list[CheckResult] = [
         _check_python(manifest, active_python),
         *(_check_component(component, version_lookup) for component in manifest.components),
+        *(_check_executable(item, executable_lookup) for item in manifest.executables),
         *(_check_environment(item, active_environment) for item in manifest.environment),
         *(_check_file(item, manifest.path.parent) for item in manifest.files),
     ]
     return DoctorReport(
         manifest_path=manifest.path,
+        manifest_schema_version=manifest.schema_version,
         project_name=manifest.project.name,
         checks=tuple(checks),
     )
@@ -142,12 +158,71 @@ def _check_component(component: ComponentSpec, version_lookup: Callable[[str], s
             message=f"distribution {component.distribution!r} is not installed",
             remediation=f"Install the {component.distribution!r} distribution in this environment.",
         )
+    try:
+        if len(installed_version) > MAX_INSTALLED_VERSION_CHARS:
+            raise InvalidVersion(installed_version)
+        parsed_version = Version(installed_version)
+        matches = component.version is None or parsed_version in SpecifierSet(component.version)
+    except (InvalidVersion, ValueError, OverflowError):
+        status = "fail" if component.required else "warn"
+        requirement = f" satisfying {component.version!r}" if component.version is not None else ""
+        return CheckResult(
+            category="component",
+            name=component.name,
+            status=status,
+            required=component.required,
+            message=(
+                f"distribution {component.distribution!r} reports invalid version "
+                f"{installed_version!r}"
+            ),
+            remediation=f"Install a valid release{requirement}.",
+        )
+    if component.version is not None and not matches:
+        status = "fail" if component.required else "warn"
+        return CheckResult(
+            category="component",
+            name=component.name,
+            status=status,
+            required=component.required,
+            message=(
+                f"distribution {component.distribution!r} is installed at "
+                f"{parsed_version}, which does not satisfy {component.version}"
+            ),
+            remediation=(
+                f"Install {component.distribution!r} at a version satisfying {component.version!r}."
+            ),
+        )
+    qualifier = f" and satisfies {component.version}" if component.version is not None else ""
     return CheckResult(
         category="component",
         name=component.name,
         status="pass",
         required=component.required,
-        message=f"distribution {component.distribution!r} is installed at {installed_version}",
+        message=(
+            f"distribution {component.distribution!r} is installed at {parsed_version}{qualifier}"
+        ),
+    )
+
+
+def _check_executable(
+    item: ExecutableSpec, executable_lookup: Callable[[str], str | None]
+) -> CheckResult:
+    if executable_lookup(item.command) is not None:
+        return CheckResult(
+            category="executable",
+            name=item.name,
+            status="pass",
+            required=item.required,
+            message=f"command {item.command!r} is available on PATH",
+        )
+    status: CheckStatus = "fail" if item.required else "warn"
+    return CheckResult(
+        category="executable",
+        name=item.name,
+        status=status,
+        required=item.required,
+        message=f"command {item.command!r} is not available on PATH",
+        remediation=f"Install {item.command!r} and make it available on PATH.",
     )
 
 
@@ -177,7 +252,11 @@ def _check_file(item: FileSpec, project_root: Path) -> CheckResult:
     try:
         root = project_root.resolve()
         relative = Path(*PurePosixPath(item.path).parts)
-        resolved = (root / relative).resolve(strict=False)
+        candidate = root / relative
+        try:
+            resolved = candidate.resolve(strict=True)
+        except FileNotFoundError:
+            resolved = candidate.resolve(strict=False)
     except (OSError, RuntimeError):
         return CheckResult(
             category="file",

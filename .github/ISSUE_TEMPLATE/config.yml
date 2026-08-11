@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report
+    url: mailto:support@samsarix.com?subject=Security%3A%20Samsarix%20Platform%20Doctor
+    about: Report unpatched vulnerabilities or sensitive security details privately.
+  - name: Support
+    url: mailto:support@samsarix.com?subject=Support%3A%20Samsarix%20Platform%20Doctor
+    about: Ask a question that is not suitable for a public issue.
