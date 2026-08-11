@@ -4,6 +4,10 @@ All notable changes to Samsarix Platform Doctor are documented here.
 
 ## Unreleased
 
+No unreleased changes.
+
+## 0.2.0 - 2026-08-11
+
 ### Added
 
 - Manifest schema version 2 with standards-compliant PEP 440 distribution constraints.

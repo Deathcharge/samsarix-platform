@@ -4,7 +4,7 @@ Samsarix Platform Doctor is a local command-line tool from **Samsarix LLC** that
 
 It is for developers who want an actionable preflight before starting an agent application or running its CI—not another agent framework or hosted service.
 
-> Status: `0.2.0` pre-release. The core local workflow is implemented, tested, and licensed under MPL 2.0, but the package has not been published.
+> Status: `0.2.0` pre-release. The core local workflow is implemented, tested, and licensed under MPL 2.0, but it has not been published to a Python package registry.
 
 ## What it does
 

@@ -4,14 +4,13 @@ Samsarix Platform Doctor is distributed as a Python source archive and universal
 
 ## Current release disposition
 
-Version `0.2.0` is a pre-release candidate. Local build and verification are implemented. Public publication remains blocked on owner decisions and external setup:
+Version `0.2.0` is a verified GitHub prerelease. Source, package, and protected hosted-CI gates pass. Publication to PyPI remains blocked on owner decisions and external setup:
 
 - confirm or claim the `samsarix-platform` distribution name immediately before release;
 - configure the owner's PyPI project and trusted publisher;
-- choose tag-signing and artifact-provenance policy;
-- obtain a green protected-branch CI run for the release commit.
+- choose the stable-release signing and artifact-provenance policy.
 
-The repository is licensed under MPL 2.0, identifies Samsarix LLC as the initial copyright holder, and publishes private support/security contact details. The public PyPI project and JSON URLs for `samsarix-platform` returned `404` when checked on 2026-07-28, but that is not a reservation or guarantee that the name can be claimed later.
+The repository is licensed under MPL 2.0, identifies Samsarix LLC as the initial copyright holder, and publishes direct support/security contact details. The public PyPI project and JSON URLs for `samsarix-platform` returned `404` when checked on 2026-07-28, but that is not a reservation or guarantee that the name can be claimed later.
 
 Do not publish from an unreviewed developer workstation or by placing a long-lived PyPI token in this repository.
 

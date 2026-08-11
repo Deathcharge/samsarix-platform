@@ -165,17 +165,17 @@ Run on Windows with Python 3.11.9 against the final implementation:
 | `python -m pip_audit . --strict --progress-spinner off` | Exit 0; no known runtime dependency vulnerabilities found. |
 | Local Markdown target check | Exit 0; 0 broken relative links. |
 
-The authored GitHub Actions matrix covers Linux and Windows on Python 3.11 and 3.14. A pushed branch and its remote check results are recorded separately from this local verification. No production deployment or package publication was attempted.
+The protected GitHub Actions matrix passed on Linux and Windows with Python 3.11 and 3.14 at the exact merged commit. No production deployment or Python package-registry publication was attempted.
 
 ## Release disposition
 
-**Open-source prerelease candidate with named package-publication gates.** The local product journey, tests, build, package shape, documentation, licensing, and standard security scan are complete with no locally actionable P0. Four low-severity scan findings were remediated before repository publication. A PyPI release still requires namespace confirmation, trusted publishing, provenance policy, and an explicitly approved release commit.
+**Verified open-source prerelease with named package-publication gates.** The product journey, tests, build, package shape, documentation, licensing, protected hosted CI, and standard security scan are complete with no locally actionable P0. Four low-severity scan findings were remediated before repository publication. A PyPI release still requires namespace confirmation, trusted publishing, provenance policy, and an explicitly approved release commit.
 
 ## Deferred and blocked work
 
 - Legal counsel has not independently reviewed the selected standard MPL 2.0 license or brand notice; obtain advice if the business model or contributor structure changes.
-- PyPI project ownership, trusted publishing, release signing, and the first public release require owner authorization and account configuration.
-- Exact-head hosted CI remains a merge gate and is recorded on the pull request rather than inferred from local checks.
+- PyPI project ownership, trusted publishing, release signing, and the first package-registry release require owner authorization and account configuration.
+- Exact-head hosted CI remains a merge gate and is recorded on each pull request rather than inferred from local checks.
 - Production deployment is not applicable to a local CLI. Package publication is documented but will not be executed here.
 - Product-market demand is unvalidated. Hosted services, telemetry, subscriptions, and provider integrations remain out of scope.
 

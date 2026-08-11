@@ -6,7 +6,7 @@ This roadmap separates four gates: merge, release, publication, and flagship ado
 
 Portfolio role: **internal infrastructure**. Use this to improve the portfolio through immutable, reviewed automation or internal deployments. It must not become a hidden runtime dependency for customer-facing products.
 
-Current disposition: publish the repository as an MPL-2.0 open-source prerelease and merge only after the focused source, package, and hosted-CI gates pass. PyPI publication remains a separate owner-controlled milestone.
+Current disposition: the repository is an MPL-2.0 open-source prerelease with protected, green hosted CI. PyPI publication remains a separate owner-controlled milestone.
 
 ## Stabilize the productized default
 
@@ -15,8 +15,8 @@ Current disposition: publish the repository as an MPL-2.0 open-source prerelease
 - Preserve the pre-productization default under a rollback ref before merging; do not delete legacy history.
 - Locally reproduced in this pass: unit tests, formatting, lint, types, 90% coverage, and package build pass.
 - Environment contract v2 now validates PEP 440 distribution ranges and read-only executable availability while preserving schema v1 compatibility.
-- Next: use public-repository Actions to establish exact-head CI, then adopt one real manifest consumer through an immutable revision.
-- Review priority: green exact-head wheel/CLI checks, real consumer adoption, then package-publication provenance.
+- Next: adopt one real manifest consumer through an immutable revision.
+- Review priority: real consumer adoption, then package-publication provenance.
 
 ## Release candidate
 
@@ -26,10 +26,10 @@ Current disposition: publish the repository as an MPL-2.0 open-source prerelease
 
 Current hardening backlog:
 
-- Private-repository CI was blocked before runner startup by the account billing setting; public standard GitHub-hosted runners avoid paid Actions minutes.
+- Public-repository CI is green on Linux and Windows with Python 3.11 and 3.14.
 - Executable checks establish safe `PATH` discovery only; they do not execute tools to probe their versions or APIs.
 - Credential validity, package API compatibility, and service reachability are not checked.
-- No evidenced adopter, public package, tag, release, or stable schema consumer.
+- No evidenced adopter, public Python package, or stable external schema consumer.
 - The `samsarix-platform` name still suggests a broader platform than the implemented doctor command.
 - PyPI namespace ownership, trusted publishing, provenance, and first-release authority remain owner gates.
 
