@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Samsarix Platform Doctor is currently a `0.1.x` pre-release. Security fixes are
+Samsarix Platform Doctor is currently a `0.2.x` pre-release. Security fixes are
 made on the latest supported release line and the default branch. Older
 pre-release snapshots may not receive fixes.
 

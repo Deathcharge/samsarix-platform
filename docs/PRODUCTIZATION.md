@@ -1,6 +1,6 @@
 # Productization record
 
-Last updated: 2026-07-28
+Last updated: 2026-08-11
 
 This is the living assessment and release record for `samsarix-platform`. It distinguishes repository evidence from product assumptions and is updated as implementation and verification progress.
 
@@ -12,7 +12,7 @@ Several documented dependencies (`helix-agent-swarm`, `agent-consensus`, and `un
 
 ## Chosen product definition
 
-**Samsarix Platform Doctor** is a local-first Python CLI for checking whether a Python multi-agent project is ready to run. A project declares its requirements in `samsarix-stack.toml`; the CLI checks the Python version, installed distributions, required environment-variable presence, and required files, then returns actionable human-readable or JSON results with stable exit codes.
+**Samsarix Platform Doctor** is a local-first Python CLI for checking whether a Python multi-agent project is ready to run. A project declares its requirements in `samsarix-stack.toml`; the CLI checks the Python version, compatible installed distributions, executable availability, required environment-variable presence, and required files, then returns actionable human-readable or JSON results with stable exit codes.
 
 This is an intentionally narrow integration-readiness tool, not an agent runtime, orchestration framework, hosted service, or dashboard.
 
@@ -40,17 +40,18 @@ Primary journey:
 
 ## Product and architecture decisions
 
-- Python 3.11+ and standard-library runtime only.
+- Python 3.11+ with one focused runtime dependency: PyPA `packaging` for standards-compliant PEP 440 evaluation.
 - `pyproject.toml` is the sole runtime/package manifest.
 - `tomllib` parses a deliberately small, versioned TOML schema.
 - Distribution checks use `importlib.metadata`; the CLI never imports a declared component, avoiding import-time side effects.
 - Environment checks report presence only and never print values.
 - Declared file paths must be portable, relative paths contained by the manifest directory; traversal and resolved symlink escapes are rejected.
-- Manifests are bounded to 1 MiB and rendered fields reject Unicode control/formatting characters.
+- Manifests are bounded to 1 MiB, must be regular files, and convert parser depth/numeric failures into structured input errors.
+- Human output neutralizes terminal control/formatting characters from both manifest and external metadata; JSON uses JSON escaping.
 - Human output is the default; JSON is stable automation output.
 - Exit `0` means ready, exit `1` means declared checks failed (or warnings exist under `--strict`), and exit `2` means invalid input or usage.
 - `init` refuses to overwrite an existing manifest.
-- No telemetry, network request, provider call, subprocess execution, or arbitrary manifest command is part of version 1.
+- No telemetry, network request, provider call, subprocess execution, or arbitrary manifest command is part of version 2. Version 1 manifests remain supported.
 
 ## Assumptions
 
@@ -96,7 +97,8 @@ No valid start command existed. Deployment commands were not run because every r
 ### P2
 
 - [ ] Add JSON Schema export or editor completion if user demand justifies the maintenance cost.
-- [ ] Add optional checks for executables and network endpoints only with explicit timeout and redaction semantics.
+- [x] Add read-only executable availability checks without command execution.
+- [ ] Add optional network endpoint checks only with explicit timeout, cancellation, and redaction semantics.
 - [ ] Add shell completion and richer CI annotations.
 - [ ] Add signed releases, provenance, and an SBOM after the owner selects a publication channel.
 - [ ] Validate demand before adding plugin execution, hosted reporting, telemetry, or paid services.
@@ -112,7 +114,7 @@ No valid start command existed. Deployment commands were not run because every r
 - [x] Add cross-platform CI and release-build checks.
 - [x] Rewrite README, quick start, architecture, contribution, and distribution documentation.
 - [x] Remove or replace obsolete and misleading artifacts.
-- [x] Complete security threat modeling, file-by-file review, candidate closure, and final scan artifacts.
+- [x] Complete a 34-file security scan and remediate its four low-severity parser/output findings.
 - [x] Run final verification and adversarial release review.
 
 ## Release acceptance criteria
@@ -128,7 +130,7 @@ No valid start command existed. Deployment commands were not run because every r
 - CI runs meaningful checks on Windows and Linux.
 - Documentation contains no known fabricated behavior or broken core links.
 - No locally actionable P0 remains.
-- Licensing is explicit and complete; publication remains an owner-controlled external gate.
+- Licensing is explicit and complete; repository publication is authorized, while PyPI publication remains a separate owner-controlled external gate.
 
 ## Completed work
 
@@ -136,9 +138,11 @@ No valid start command existed. Deployment commands were not run because every r
 - Inspected every tracked file, all commits and locally available branches, package manifests, documentation, and advertised operational surfaces.
 - Ran the baseline install, test, compile, build, start, lint, and type-check commands listed above.
 - Performed bounded comparison research and selected a doctor-style local CLI using current Python packaging conventions.
-- Implemented the zero-runtime-dependency package, `doctor` and non-overwriting `init` commands, strict TOML schema, stable JSON, and documented exit codes.
+- Implemented the focused-runtime-dependency package, `doctor` and non-overwriting `init` commands, strict TOML schema, stable JSON, and documented exit codes.
 - Added manifest size, UTF-8, control-character, duplicate, path-containment, destination-symlink, secret-redaction, and no-import controls with regression tests.
-- Added a maintained example, 37 unit/CLI/package tests, Ruff, strict mypy, branch-aware coverage, cross-platform CI, dependency update configuration, build verification, and fresh-wheel smoke coverage.
+- Added a maintained example, 52 unit/CLI/package tests, Ruff, strict mypy, branch-aware coverage, cross-platform CI, dependency update configuration, build verification, and fresh-wheel smoke coverage.
+- Added environment contract v2 with PEP 440 component constraints, safe executable discovery, v1 compatibility, and schema-aware JSON reports.
+- Hardened special-file reads, parser recursion/numeric errors, distribution-name canonicalization, and terminal rendering following a complete standard security scan.
 - Replaced the obsolete backup, un-installable runtime requirements, fabricated deployment guide, and aspirational platform examples with accurate product, architecture, release, contribution, and limitation documentation.
 - Migrated all current product identifiers to Samsarix before publication and added MPL 2.0 licensing, Samsarix LLC attribution, brand boundaries, and verified company contact channels.
 
@@ -151,33 +155,33 @@ Run on Windows with Python 3.11.9 against the final implementation:
 | `python -m ruff format --check .` | Exit 0; 11 Python files already formatted. |
 | `python -m ruff check .` | Exit 0; all checks passed. |
 | `python -m mypy src tests` | Exit 0; no issues in 11 source files. |
-| `python -m coverage run -m unittest discover -s tests` | Exit 0; 37 tests passed. |
-| `python -m coverage report` | Exit 0; 93% branch-aware total coverage, above the 90% gate. |
-| `samsarix-platform doctor samsarix-stack.toml --json --strict` | Exit 0; 5 passed, 0 warned, 0 failed, status `ready`. |
+| `python -m coverage run -m unittest discover -s tests` | Exit 0; 52 tests passed. |
+| `python -m coverage report` | Exit 0; 95% branch-aware total coverage, above the 90% gate. |
+| `samsarix-platform doctor samsarix-stack.toml --json --strict` | Exit 0; 6 passed, 0 warned, 0 failed, status `ready`. |
 | `samsarix-platform doctor examples/agent-project/samsarix-stack.toml --strict` | Exit 1 as designed; the optional SDK was installed, the optional key was absent, and strict mode promoted that warning to `not_ready`. |
-| `python -m build` | Exit 0; built `samsarix_platform-0.1.0.tar.gz` and `samsarix_platform-0.1.0-py3-none-any.whl`. |
+| `python -m build` | Exit 0; built `samsarix_platform-0.2.0.tar.gz` and `samsarix_platform-0.2.0-py3-none-any.whl`. |
 | `python -m twine check dist/*` | Exit 0; both artifacts passed. |
 | Fresh-wheel `--version`, `--help`, `init`, strict `doctor`, module entry point, and `pip check` | All exited 0 in an isolated virtual environment; no broken requirements. |
-| `python -m pip_audit -r requirements-dev.txt --progress-spinner off` | Exit 0; no known vulnerabilities found. The local pip cache emitted recoverable deserialization warnings. |
+| `python -m pip_audit . --strict --progress-spinner off` | Exit 0; no known runtime dependency vulnerabilities found. |
 | Local Markdown target check | Exit 0; 0 broken relative links. |
 
 The authored GitHub Actions matrix covers Linux and Windows on Python 3.11 and 3.14. A pushed branch and its remote check results are recorded separately from this local verification. No production deployment or package publication was attempted.
 
 ## Release disposition
 
-**Release candidate with named owner/external gates.** The local product journey, tests, build, package shape, documentation, licensing, and standard security scan are complete with no locally actionable P0 and no surviving reportable security finding. Public release still requires package-namespace confirmation, trusted-publishing/repository configuration, owner review, and a green remote CI matrix.
+**Open-source prerelease candidate with named package-publication gates.** The local product journey, tests, build, package shape, documentation, licensing, and standard security scan are complete with no locally actionable P0. Four low-severity scan findings were remediated before repository publication. A PyPI release still requires namespace confirmation, trusted publishing, provenance policy, and an explicitly approved release commit.
 
 ## Deferred and blocked work
 
 - Legal counsel has not independently reviewed the selected standard MPL 2.0 license or brand notice; obtain advice if the business model or contributor structure changes.
 - PyPI project ownership, trusted publishing, release signing, and the first public release require owner authorization and account configuration.
-- GitHub Actions Linux/Python 3.14 verification requires a pushed branch and green remote run; equivalent Windows/Python 3.11 checks passed locally.
+- Exact-head hosted CI remains a merge gate and is recorded on the pull request rather than inferred from local checks.
 - Production deployment is not applicable to a local CLI. Package publication is documented but will not be executed here.
 - Product-market demand is unvalidated. Hosted services, telemetry, subscriptions, and provider integrations remain out of scope.
 
 ## Known risks
 
-- Distribution names identify installed packages but do not prove API compatibility or runtime health.
+- Distribution names and version constraints do not prove API compatibility or runtime health.
 - Environment-variable presence does not prove credential validity.
 - File presence does not validate file contents.
 - Direct development tools are pinned, but transitive package-index and runner-image trust remain supply-chain dependencies until an owner adopts a hash-locked workflow and release provenance.

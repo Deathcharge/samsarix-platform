@@ -136,7 +136,7 @@ samsarix-platform doctor [MANIFEST] [--json] [--strict]
 ### Manifest schema version 2
 
 Unknown keys and duplicate declarations are errors so misspellings do not silently weaken a check.
-Manifests must be UTF-8, are limited to 1 MiB, and cannot place control/formatting characters in rendered fields.
+Manifests must be regular UTF-8 files, are limited to 1 MiB, and cannot place control/formatting characters in rendered fields.
 
 | Section | Fields | Behavior |
 | --- | --- | --- |
@@ -167,6 +167,7 @@ python -m mypy src tests
 python -m coverage erase
 python -m coverage run -m unittest discover -s tests
 python -m coverage report
+python -m pip_audit . --strict --progress-spinner off
 python -m build
 python -m twine check dist/*
 samsarix-platform doctor samsarix-stack.toml --strict
@@ -196,7 +197,8 @@ See [the architecture guide](docs/ARCHITECTURE.md) for data flow, trust boundari
 - Manifest file paths reject absolute paths, `..`, Windows-only separators, resolved symlink escapes, and cyclic/unresolvable links.
 - Secret values are reduced to present/not-present and never included in human or JSON output.
 - The parser rejects unknown keys, wrong types, duplicates, and unsupported schema versions.
-- Parsing reads at most 1 MiB and rejects terminal control/formatting characters.
+- Parsing accepts only regular files, reads at most 1 MiB, and converts parser limits into concise input errors.
+- Human output escapes terminal control/formatting characters from paths and installed-package metadata; JSON uses JSON escaping.
 - `init` never overwrites a destination or follows an existing destination symlink.
 - Checks are local, bounded by manifest size, and non-destructive.
 - There is no network access, telemetry, AI provider use, or operating cost in the core tool.

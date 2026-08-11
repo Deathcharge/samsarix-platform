@@ -75,7 +75,7 @@ GitHub Actions are pinned to full commit hashes. Dependency update automation sh
 
 After the package namespace is resolved, the owner can add a separate release workflow using PyPI trusted publishing with a protected GitHub environment. The workflow should build once, retain the verified artifacts, publish only on an approved version tag, request `id-token: write` only in the publish job, and attach provenance according to the owner's policy.
 
-These steps document the required shape; they do not authorize creating accounts, claiming names, uploading artifacts, changing repository settings, or publishing a package.
+These steps document the required shape. They do not authorize creating accounts, claiming package names, uploading artifacts, or publishing a package; repository settings are managed separately from package publication.
 
 ## Rollback
 

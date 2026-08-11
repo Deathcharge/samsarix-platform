@@ -5,7 +5,9 @@
 
 from __future__ import annotations
 
+import os
 import re
+import stat
 import tomllib
 import unicodedata
 from dataclasses import dataclass
@@ -13,12 +15,14 @@ from pathlib import Path, PurePosixPath
 from typing import cast
 
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
+from packaging.utils import canonicalize_name
 
-_PYTHON_REQUIREMENT = re.compile(r">=(\d+)\.(\d+)(?:\.(\d+))?\Z")
+_PYTHON_REQUIREMENT = re.compile(r">=(\d{1,3})\.(\d{1,3})(?:\.(\d{1,3}))?\Z")
 _ENVIRONMENT_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
 _DISTRIBUTION_NAME = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?\Z")
 _EXECUTABLE_COMMAND = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._+-]*[A-Za-z0-9])?\Z")
 MAX_MANIFEST_BYTES = 1_048_576
+MAX_VERSION_SPECIFIER_CHARS = 256
 SUPPORTED_SCHEMA_VERSIONS = frozenset({1, 2})
 
 
@@ -95,28 +99,17 @@ def load_manifest(path: Path) -> Manifest:
         manifest_path = path.expanduser().resolve()
     except (OSError, RuntimeError) as exc:
         raise ManifestError(f"could not resolve manifest path {path}: {exc}") from exc
-    if manifest_path.is_dir():
-        raise ManifestError(f"manifest path is a directory: {manifest_path}")
+    payload = _read_manifest(manifest_path)
     try:
-        with manifest_path.open("rb") as handle:
-            payload = handle.read(MAX_MANIFEST_BYTES + 1)
-        if len(payload) > MAX_MANIFEST_BYTES:
-            raise ManifestError(
-                f"manifest exceeds the {MAX_MANIFEST_BYTES}-byte size limit: {manifest_path}"
-            )
         raw = tomllib.loads(payload.decode("utf-8"))
-    except FileNotFoundError as exc:
-        raise ManifestError(f"manifest not found: {manifest_path}") from exc
-    except IsADirectoryError as exc:
-        raise ManifestError(f"manifest path is a directory: {manifest_path}") from exc
-    except PermissionError as exc:
-        raise ManifestError(f"manifest is not readable: {manifest_path}") from exc
-    except OSError as exc:
-        raise ManifestError(f"could not read manifest {manifest_path}: {exc}") from exc
     except UnicodeDecodeError as exc:
         raise ManifestError(f"manifest is not valid UTF-8: {manifest_path}") from exc
     except tomllib.TOMLDecodeError as exc:
         raise ManifestError(f"invalid TOML in {manifest_path}: {exc}") from exc
+    except RecursionError as exc:
+        raise ManifestError(f"manifest TOML nesting is too deep: {manifest_path}") from exc
+    except (ValueError, OverflowError) as exc:
+        raise ManifestError(f"manifest contains an invalid numeric value: {manifest_path}") from exc
 
     root = _as_table(raw, "manifest")
     schema_version = root.get("schema_version")
@@ -183,15 +176,19 @@ def _parse_components(value: object, *, schema_version: int) -> tuple[ComponentS
         distribution = _required_string(table, "distribution", section)
         if _DISTRIBUTION_NAME.fullmatch(distribution) is None:
             raise ManifestError(f"{section}.distribution is not a valid distribution name")
-        identity = distribution.casefold()
+        identity = canonicalize_name(distribution)
         if identity in identities:
             raise ManifestError(f"{section}.distribution duplicates {distribution!r}")
         identities.add(identity)
         version = _optional_string(table, "version", section)
         if version is not None:
+            if len(version) > MAX_VERSION_SPECIFIER_CHARS:
+                raise ManifestError(
+                    f"{section}.version exceeds the {MAX_VERSION_SPECIFIER_CHARS}-character limit"
+                )
             try:
                 SpecifierSet(version)
-            except InvalidSpecifier as exc:
+            except (InvalidSpecifier, ValueError, OverflowError) as exc:
                 raise ManifestError(f"{section}.version is not a valid PEP 440 specifier") from exc
         parsed.append(
             ComponentSpec(
@@ -203,6 +200,36 @@ def _parse_components(value: object, *, schema_version: int) -> tuple[ComponentS
             )
         )
     return tuple(parsed)
+
+
+def _read_manifest(path: Path) -> bytes:
+    """Read a bounded regular file without blocking on special files."""
+
+    if path.is_dir():
+        raise ManifestError(f"manifest path is a directory: {path}")
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
+    descriptor: int | None = None
+    try:
+        descriptor = os.open(path, flags)
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise ManifestError(f"manifest path is not a regular file: {path}")
+        with os.fdopen(descriptor, "rb") as handle:
+            descriptor = None
+            payload = handle.read(MAX_MANIFEST_BYTES + 1)
+    except FileNotFoundError as exc:
+        raise ManifestError(f"manifest not found: {path}") from exc
+    except IsADirectoryError as exc:
+        raise ManifestError(f"manifest path is a directory: {path}") from exc
+    except PermissionError as exc:
+        raise ManifestError(f"manifest is not readable: {path}") from exc
+    except OSError as exc:
+        raise ManifestError(f"could not read manifest {path}: {exc}") from exc
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+    if len(payload) > MAX_MANIFEST_BYTES:
+        raise ManifestError(f"manifest exceeds the {MAX_MANIFEST_BYTES}-byte size limit: {path}")
+    return payload
 
 
 def _parse_executables(value: object) -> tuple[ExecutableSpec, ...]:

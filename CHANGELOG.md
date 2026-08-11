@@ -14,6 +14,15 @@ All notable changes to Samsarix Platform Doctor are documented here.
 
 - `init` now creates version 2 manifests; version 1 manifests remain supported unchanged.
 - Package version advanced to `0.2.0` and now depends on PyPA `packaging`.
+- Distribution duplicate detection now follows canonical Python package-name semantics.
+
+### Security
+
+- Refuse non-regular manifest files before reading to avoid blocking special-file inputs.
+- Convert TOML recursion and oversized numeric conversion failures into structured manifest errors.
+- Bound version fields and normalize invalid installed metadata into structured component results.
+- Escape terminal controls from all human-rendered dynamic output.
+- Update the isolated build backend to a patched `setuptools` release and audit runtime dependencies in CI.
 
 ### Added
 

@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from samsarix_platform.cli import main
+from samsarix_platform.cli import _terminal_safe, main
 
 
 class CliTests(unittest.TestCase):
@@ -90,6 +90,19 @@ class CliTests(unittest.TestCase):
         self.assertEqual(payload["exit_code"], 2)
         self.assertEqual(error, "")
 
+    def test_deeply_nested_manifest_json_is_machine_readable(self) -> None:
+        manifest = self.root / "samsarix-stack.toml"
+        nested = "[" * 2_000 + "0" + "]" * 2_000
+        manifest.write_text(f"schema_version = 2\nunknown = {nested}\n", encoding="utf-8")
+
+        exit_code, output, error = self.invoke(["doctor", str(manifest), "--json"])
+
+        payload = json.loads(output)
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(payload["status"], "invalid_manifest")
+        self.assertIn("nesting is too deep", payload["error"])
+        self.assertEqual(error, "")
+
     def test_valid_doctor_json_is_machine_readable(self) -> None:
         manifest = self.root / "samsarix-stack.toml"
         self.invoke(["init", str(manifest), "--name", "JSON Example"])
@@ -122,6 +135,11 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(raised.exception.code, 0)
         self.assertIn("samsarix-platform 0.2.0", stdout.getvalue())
+
+    def test_terminal_output_escapes_controls_and_formatting(self) -> None:
+        rendered = _terminal_safe("ready\n\x1b\x7f\u202eforged")
+
+        self.assertEqual(rendered, "ready\\n\\x1b\\x7f\\u202eforged")
 
 
 if __name__ == "__main__":

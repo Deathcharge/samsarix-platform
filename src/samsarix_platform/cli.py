@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import unicodedata
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -83,7 +84,7 @@ def _run_doctor(manifest_path: Path, *, json_output: bool, strict: bool) -> int:
                 )
             )
         else:
-            print(f"error: {exc}", file=sys.stderr)
+            print(_terminal_safe(f"error: {exc}"), file=sys.stderr)
         return 2
 
     report = run_checks(manifest)
@@ -95,14 +96,18 @@ def _run_doctor(manifest_path: Path, *, json_output: bool, strict: bool) -> int:
 
 
 def _render_human(report: DoctorReport, *, strict: bool) -> None:
-    print(f"Samsarix Platform Doctor {__version__}")
-    print(f"Project:  {report.project_name}")
-    print(f"Manifest: {report.manifest_path}")
+    print(_terminal_safe(f"Samsarix Platform Doctor {__version__}"))
+    print(_terminal_safe(f"Project:  {report.project_name}"))
+    print(_terminal_safe(f"Manifest: {report.manifest_path}"))
     print()
     for check in report.checks:
-        print(f"[{check.status.upper():4}] {check.category}/{check.name}: {check.message}")
+        print(
+            _terminal_safe(
+                f"[{check.status.upper():4}] {check.category}/{check.name}: {check.message}"
+            )
+        )
         if check.remediation is not None:
-            print(f"       Fix: {check.remediation}")
+            print(_terminal_safe(f"       Fix: {check.remediation}"))
     counts = report.counts()
     print()
     print(f"Summary: {counts['pass']} passed, {counts['warn']} warned, {counts['fail']} failed")
@@ -117,10 +122,15 @@ def _run_init(destination: Path, *, project_name: str | None) -> int:
     if not selected_name:
         selected_name = "my-agent-project"
     if not target.parent.is_dir():
-        print(f"error: destination directory does not exist: {target.parent}", file=sys.stderr)
+        print(
+            _terminal_safe(f"error: destination directory does not exist: {target.parent}"),
+            file=sys.stderr,
+        )
         return 2
     if target.is_symlink():
-        print(f"error: refusing to overwrite existing path: {target}", file=sys.stderr)
+        print(
+            _terminal_safe(f"error: refusing to overwrite existing path: {target}"), file=sys.stderr
+        )
         return 2
 
     content = _starter_manifest(selected_name)
@@ -128,14 +138,16 @@ def _run_init(destination: Path, *, project_name: str | None) -> int:
         with target.open("x", encoding="utf-8", newline="\n") as handle:
             handle.write(content)
     except FileExistsError:
-        print(f"error: refusing to overwrite existing path: {target}", file=sys.stderr)
+        print(
+            _terminal_safe(f"error: refusing to overwrite existing path: {target}"), file=sys.stderr
+        )
         return 2
     except OSError as exc:
-        print(f"error: could not create {target}: {exc}", file=sys.stderr)
+        print(_terminal_safe(f"error: could not create {target}: {exc}"), file=sys.stderr)
         return 2
 
-    print(f"Created {target}")
-    print(f"Next: samsarix-platform doctor {target}")
+    print(_terminal_safe(f"Created {target}"))
+    print(_terminal_safe(f"Next: samsarix-platform doctor {target}"))
     return 0
 
 
@@ -169,3 +181,15 @@ requires_python = ">=3.11"
 # path = "config/agents.toml"
 # required = true
 """
+
+
+def _terminal_safe(value: object) -> str:
+    """Escape terminal controls while preserving ordinary printable Unicode."""
+
+    rendered: list[str] = []
+    for character in str(value):
+        if character.isprintable() and unicodedata.category(character) != "Cf":
+            rendered.append(character)
+        else:
+            rendered.append(ascii(character)[1:-1])
+    return "".join(rendered)

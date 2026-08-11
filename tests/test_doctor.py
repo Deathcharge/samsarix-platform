@@ -170,6 +170,20 @@ required = true
         self.assertEqual(component.status, "fail")
         self.assertIn("invalid version", component.message)
 
+    def test_oversized_installed_version_is_structured(self) -> None:
+        manifest = load_manifest(self.manifest())
+
+        report = run_checks(
+            manifest,
+            environ={"EXAMPLE_SECRET": "set"},
+            version_lookup=lambda _distribution: "9" * 5_000,
+            executable_lookup=lambda _command: "/bin/example-tool",
+        )
+
+        component = next(check for check in report.checks if check.category == "component")
+        self.assertEqual(component.status, "fail")
+        self.assertIn("invalid version", component.message)
+
     def test_resolved_symlink_escape_fails_safely(self) -> None:
         outside = self.root.parent / f"{self.root.name}-outside.txt"
         outside.write_text("outside\n", encoding="utf-8")

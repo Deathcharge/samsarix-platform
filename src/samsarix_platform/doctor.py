@@ -27,6 +27,7 @@ from samsarix_platform.manifest import (
 )
 
 CheckStatus = Literal["pass", "warn", "fail"]
+MAX_INSTALLED_VERSION_CHARS = 256
 
 
 @dataclass(frozen=True, slots=True)
@@ -157,38 +158,40 @@ def _check_component(component: ComponentSpec, version_lookup: Callable[[str], s
             message=f"distribution {component.distribution!r} is not installed",
             remediation=f"Install the {component.distribution!r} distribution in this environment.",
         )
-    if component.version is not None:
-        try:
-            matches = Version(installed_version) in SpecifierSet(component.version)
-        except InvalidVersion:
-            status = "fail" if component.required else "warn"
-            return CheckResult(
-                category="component",
-                name=component.name,
-                status=status,
-                required=component.required,
-                message=(
-                    f"distribution {component.distribution!r} reports invalid version "
-                    f"{installed_version!r}"
-                ),
-                remediation=f"Install a valid release satisfying {component.version!r}.",
-            )
-        if not matches:
-            status = "fail" if component.required else "warn"
-            return CheckResult(
-                category="component",
-                name=component.name,
-                status=status,
-                required=component.required,
-                message=(
-                    f"distribution {component.distribution!r} is installed at "
-                    f"{installed_version}, which does not satisfy {component.version}"
-                ),
-                remediation=(
-                    f"Install {component.distribution!r} at a version satisfying "
-                    f"{component.version!r}."
-                ),
-            )
+    try:
+        if len(installed_version) > MAX_INSTALLED_VERSION_CHARS:
+            raise InvalidVersion(installed_version)
+        parsed_version = Version(installed_version)
+        matches = component.version is None or parsed_version in SpecifierSet(component.version)
+    except (InvalidVersion, ValueError, OverflowError):
+        status = "fail" if component.required else "warn"
+        requirement = f" satisfying {component.version!r}" if component.version is not None else ""
+        return CheckResult(
+            category="component",
+            name=component.name,
+            status=status,
+            required=component.required,
+            message=(
+                f"distribution {component.distribution!r} reports invalid version "
+                f"{installed_version!r}"
+            ),
+            remediation=f"Install a valid release{requirement}.",
+        )
+    if component.version is not None and not matches:
+        status = "fail" if component.required else "warn"
+        return CheckResult(
+            category="component",
+            name=component.name,
+            status=status,
+            required=component.required,
+            message=(
+                f"distribution {component.distribution!r} is installed at "
+                f"{parsed_version}, which does not satisfy {component.version}"
+            ),
+            remediation=(
+                f"Install {component.distribution!r} at a version satisfying {component.version!r}."
+            ),
+        )
     qualifier = f" and satisfies {component.version}" if component.version is not None else ""
     return CheckResult(
         category="component",
@@ -196,8 +199,7 @@ def _check_component(component: ComponentSpec, version_lookup: Callable[[str], s
         status="pass",
         required=component.required,
         message=(
-            f"distribution {component.distribution!r} is installed at "
-            f"{installed_version}{qualifier}"
+            f"distribution {component.distribution!r} is installed at {parsed_version}{qualifier}"
         ),
     )
 
