@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Private security report
-    url: mailto:support@samsarix.com?subject=Security%3A%20Samsarix%20Platform%20Doctor
+    url: https://github.com/Deathcharge/samsarix-platform/security/advisories/new
     about: Report unpatched vulnerabilities or sensitive security details privately.
   - name: Support
-    url: mailto:support@samsarix.com?subject=Support%3A%20Samsarix%20Platform%20Doctor
-    about: Ask a question that is not suitable for a public issue.
+    url: https://www.samsarix.com
+    about: Visit Samsarix support or email support@samsarix.com for a private question.
