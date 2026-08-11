@@ -252,7 +252,11 @@ def _check_file(item: FileSpec, project_root: Path) -> CheckResult:
     try:
         root = project_root.resolve()
         relative = Path(*PurePosixPath(item.path).parts)
-        resolved = (root / relative).resolve(strict=False)
+        candidate = root / relative
+        try:
+            resolved = candidate.resolve(strict=True)
+        except FileNotFoundError:
+            resolved = candidate.resolve(strict=False)
     except (OSError, RuntimeError):
         return CheckResult(
             category="file",

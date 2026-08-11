@@ -96,7 +96,9 @@ def load_manifest(path: Path) -> Manifest:
     """Load and validate a Samsarix stack manifest from ``path``."""
 
     try:
-        manifest_path = path.expanduser().resolve()
+        manifest_path = path.expanduser().resolve(strict=True)
+    except FileNotFoundError as exc:
+        raise ManifestError(f"manifest not found: {path.expanduser().absolute()}") from exc
     except (OSError, RuntimeError) as exc:
         raise ManifestError(f"could not resolve manifest path {path}: {exc}") from exc
     payload = _read_manifest(manifest_path)

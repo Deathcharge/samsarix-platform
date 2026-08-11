@@ -23,6 +23,7 @@ All notable changes to Samsarix Platform Doctor are documented here.
 - Bound version fields and normalize invalid installed metadata into structured component results.
 - Escape terminal controls from all human-rendered dynamic output.
 - Update the isolated build backend to a patched `setuptools` release and audit runtime dependencies in CI.
+- Handle symbolic-link cycles consistently across Python 3.11 through 3.14.
 
 ### Added
 
