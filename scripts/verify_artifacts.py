@@ -45,6 +45,7 @@ def main() -> None:
         extracted = root / name
         for filename in (
             "NOTICE.md",
+            "requirements-dev.lock",
             ".pre-commit-hooks.yaml",
             "docs/CI.md",
             "docs/EDITORS.md",
@@ -63,6 +64,7 @@ def main() -> None:
             env,
         )
         run([str(python), "-m", "unittest", "discover", "-s", "tests", "-v"], extracted, env)
+        run([str(python), "scripts/lock_dependencies.py", "--check"], extracted, env)
         run([str(python), "-m", "samsarix_platform", "validate", "--json"], extracted, env)
         run([str(python), "-m", "samsarix_platform", "doctor", "--strict"], extracted, env)
         run([str(python), "-m", "pip", "check"], root, env)

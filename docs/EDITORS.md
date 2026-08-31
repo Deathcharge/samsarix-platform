@@ -100,7 +100,7 @@ compatibility, valid credentials, or a functioning application.
 ## Maintainer verification
 
 ```console
-python -m pip install -r requirements-dev.txt
+python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock
 python scripts/verify_editor_schema.py
 ```
 

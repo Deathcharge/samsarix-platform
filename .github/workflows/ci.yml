@@ -49,6 +49,13 @@ jobs:
       - name: Verify JSON readiness output
         run: samsarix-platform doctor samsarix-stack.toml --json --strict
 
+      - name: Verify hash-locked tools on this Python and OS
+        run: |
+          python scripts/lock_dependencies.py --check
+          python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-dev.lock
+          python -m pip check
+          python -m unittest discover -s tests
+
   quality:
     name: Quality and package
     runs-on: ubuntu-latest
@@ -62,13 +69,20 @@ jobs:
         with:
           python-version: "3.14"
 
-      - name: Install package and pinned development tools
+      - name: Check dependency lock inputs
+        run: python scripts/lock_dependencies.py --check
+
+      - name: Install hash-locked development and build tools
         run: |
-          python -m pip install --disable-pip-version-check -e .
-          python -m pip install --disable-pip-version-check -r requirements-dev.txt
+          python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-dev.lock
+          python -m pip install --disable-pip-version-check --no-deps --no-build-isolation -e .
+          python -m pip check
 
       - name: Check formatting
         run: python -m ruff format --check .
+
+      - name: Verify pip rejects mismatched dependency hashes
+        run: python scripts/verify_locked_environment.py --hash-rejection-only
 
       - name: Lint
         run: python -m ruff check .
@@ -85,6 +99,9 @@ jobs:
       - name: Audit runtime dependencies
         run: python -m pip_audit . --strict --progress-spinner off
 
+      - name: Audit locked development dependencies
+        run: python -m pip_audit -r requirements-dev.lock --strict --progress-spinner off
+
       - name: Verify real pre-commit consumer integration
         run: python scripts/verify_pre_commit.py
 
@@ -92,7 +109,7 @@ jobs:
         run: python scripts/verify_editor_schema.py
 
       - name: Build distributions
-        run: python -m build
+        run: python -m build --no-isolation
 
       - name: Check distribution metadata
         run: python -m twine check dist/*

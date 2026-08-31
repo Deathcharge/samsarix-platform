@@ -95,6 +95,38 @@ This remains development snapshot `0.3.0.dev0`; no release tag, registry
 publication, external extension submission, or third-party adoption is claimed.
 No runtime dependency, telemetry, or remote editor setting is introduced.
 
+### Release engineering increment: locked development inputs (2026-08-31)
+
+Baseline: clean `c5d4729`, 74 tests, no open issues/PRs, and a single immutable
+`v0.2.0` GitHub prerelease. Direct development tools were pinned, but transitive
+dependencies were resolved afresh on every install. The build also created a
+separate backend environment. Those were locally actionable repeatability gaps,
+distinct from owner-controlled adoption and registry-publication gates.
+
+Following [pip's hash-checking guidance](https://pip.pypa.io/en/stable/topics/secure-installs/)
+and [uv's universal resolution model](https://docs.astral.sh/uv/concepts/resolution/),
+the repository now generates `requirements-dev.lock` from existing direct pins,
+`pyproject.toml` runtime/build requirements, and the minimum Python version. It
+contains exact versions, environment markers, and distribution hashes for 75
+resolved packages. No runtime API or dependency constraint was changed. The
+pinned uv compiler is development-only; normal users still install with pip.
+
+An offline standard-library check detects input and lock-body drift. Generation
+preserves existing versions unless an update is requested and stages a complete
+replacement only after resolution succeeds. Quality CI installs wheel artifacts
+with `--require-hashes --only-binary=:all:` and builds using the locked backend
+with `--no-isolation`. The runtime-only matrix remains independent; all four
+Linux/Windows Python combinations additionally install the lock and rerun tests.
+
+Local evidence: 84 tests pass, Ruff and strict mypy pass across 21 files, and
+regeneration is byte-identical. A disposable Windows Python 3.11 environment
+successfully installed the lock, built the package, passed the extracted-source
+tests against a fresh wheel, and passed all 40 editor fixtures plus real Taplo
+LSP. Pip rejected a deliberately mismatched hash. CI also exercises that rejection.
+Exact-head CI is required before merge; [dependency procedures](DEPENDENCIES.md)
+state the scope and limitations. No account, release, billing, or other user
+repository was changed.
+
 ### Why this product
 
 - It preserves the repository's evidenced integration-hub and onboarding intent.
@@ -263,7 +295,7 @@ The protected GitHub Actions matrix passed on Linux and Windows with Python 3.11
 - Distribution names and version constraints do not prove API compatibility or runtime health.
 - Environment-variable presence does not prove credential validity.
 - File presence does not validate file contents.
-- Direct development tools are pinned, but transitive package-index and runner-image trust remain supply-chain dependencies until an owner adopts a hash-locked workflow and release provenance.
+- Development/build package versions and accepted bytes are hash-locked. Python/OS images, the initial installer, initial index trust, independently resolved runtime/hook smoke tests, and release provenance remain separate trust boundaries; locks are not signatures or reproducible-build proofs.
 - A local process can change the environment after the check completes; the report is a point-in-time assessment.
 - The repository's historical commits and any downstream links may retain the former Helix name; current source, package, CLI, manifest, and documentation use Samsarix consistently.
 

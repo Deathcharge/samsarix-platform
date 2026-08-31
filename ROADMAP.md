@@ -33,6 +33,11 @@ is required for the checked-in local schema workflow.
 
 ## Release candidate
 
+Development/build dependency inputs now have a universal hash lock, checked for
+drift and tested separately from normal runtime dependency resolution. This is
+not a signed release or evidence of consumer adoption; provenance and adoption
+remain separate gates.
+
 - Adopt it in one repository through an immutable revision.
 - Document permissions, rollback, failure isolation, and ownership.
 - Measure maintenance saved before expanding portfolio-wide.

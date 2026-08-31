@@ -94,7 +94,7 @@ use hook `args` to supply CLI switches. Use the CLI directly for JSON reports.
 Before adopting, test the committed hook from a checkout of this repository:
 
 ```console
-python -m pip install -r requirements-dev.txt
+python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock
 python -m pre_commit try-repo . samsarix-validate --ref HEAD --all-files --verbose
 python scripts/verify_pre_commit.py
 ```

@@ -30,8 +30,9 @@ python -m venv .venv
 Activate the environment, then run:
 
 ```console
-python -m pip install -e .
-python -m pip install -r requirements-dev.txt
+python scripts/lock_dependencies.py --check
+python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock
+python -m pip install --no-deps --no-build-isolation -e .
 python -m ruff format --check .
 python -m ruff check .
 python -m mypy src tests scripts
@@ -39,7 +40,7 @@ python -m coverage erase
 python -m coverage run -m unittest discover -s tests
 python -m coverage report
 samsarix-platform doctor samsarix-stack.toml --strict
-python -m build
+python -m build --no-isolation
 python -m twine check dist/*
 python scripts/verify_artifacts.py
 python scripts/verify_pre_commit.py
@@ -47,6 +48,11 @@ python scripts/verify_editor_schema.py
 ```
 
 The build must create exactly one `.tar.gz` source distribution and one `py3-none-any.whl` for the selected version.
+
+The build uses the backend installed from the hash lock, without an extra isolated
+dependency resolution. This pins dependency inputs, not byte-for-byte artifact
+reproducibility or publisher provenance. [Dependency maintenance](DEPENDENCIES.md)
+documents deliberate updates, hash checks, and remaining trust boundaries.
 
 ## Fresh-wheel smoke test
 
