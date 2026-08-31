@@ -34,6 +34,7 @@ python -m build
 python -m twine check dist/*
 python scripts/verify_artifacts.py
 python scripts/verify_pre_commit.py
+python scripts/verify_editor_schema.py
 samsarix-platform doctor samsarix-stack.toml --strict
 ```
 
@@ -42,6 +43,11 @@ CI runs the unit tests and installed CLI journey on Windows and Linux, then repe
 The hook verifier tests committed `HEAD`, not uncommitted changes, and creates an
 isolated consumer/cache outside the repository. Run it after committing hook or
 package changes. See [the CI guide](docs/CI.md) for the contract-only hook.
+
+The editor verifier downloads a version/checksum-pinned full Taplo binary into a
+temporary directory, exercises real CLI and language-server behavior, and cleans
+up afterward. Use `--taplo PATH` for an already trusted local full build; see
+[editor verification and limits](docs/EDITORS.md). These are development-only tools.
 
 ## Change expectations
 

@@ -10,6 +10,7 @@ import json
 import sys
 import unicodedata
 from collections.abc import Sequence
+from importlib.resources import files
 from pathlib import Path
 
 from samsarix_platform import __version__
@@ -57,6 +58,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--json", action="store_true", help="write one batch JSON report to stdout"
     )
 
+    schema = commands.add_parser("schema", help="export the bundled editor JSON schema offline")
+    schema.add_argument(
+        "--output",
+        metavar="PATH",
+        help="create a UTF-8 schema file without overwriting (default: stdout)",
+    )
+
     init = commands.add_parser("init", help="create a safe starter manifest")
     init.add_argument(
         "path",
@@ -79,6 +87,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run_validate(paths, json_output=args.json)
     if args.command == "init":
         return _run_init(Path(args.path), project_name=args.name)
+    if args.command == "schema":
+        return _run_schema(Path(args.output) if args.output is not None else None)
     raise AssertionError(f"unhandled command: {args.command}")
 
 
@@ -162,19 +172,45 @@ def _run_init(destination: Path, *, project_name: str | None) -> int:
     selected_name = project_name.strip() if project_name is not None else target.parent.name
     if not selected_name:
         selected_name = "my-agent-project"
+    if not _create_file(target, _starter_manifest(selected_name)):
+        return 2
+
+    print(_terminal_safe(f"Created {target}"))
+    print(_terminal_safe(f"Next: samsarix-platform doctor {target}"))
+    return 0
+
+
+def _run_schema(destination: Path | None) -> int:
+    content = (
+        files("samsarix_platform")
+        .joinpath("schemas/manifest.schema.json")
+        .read_text(encoding="utf-8")
+    )
+    if destination is None:
+        print(content, end="")
+        return 0
+    target = destination.expanduser().absolute()
+    if not _create_file(target, content):
+        return 2
+    print(_terminal_safe(f"Created {target}"))
+    print("Scope: editor assistance only; run samsarix-platform validate for full validation.")
+    return 0
+
+
+def _create_file(target: Path, content: str) -> bool:
+    """Exclusively create an explicitly selected file; never replace a destination link."""
+
     if not target.parent.is_dir():
         print(
             _terminal_safe(f"error: destination directory does not exist: {target.parent}"),
             file=sys.stderr,
         )
-        return 2
+        return False
     if target.is_symlink():
         print(
             _terminal_safe(f"error: refusing to overwrite existing path: {target}"), file=sys.stderr
         )
-        return 2
-
-    content = _starter_manifest(selected_name)
+        return False
     try:
         with target.open("x", encoding="utf-8", newline="\n") as handle:
             handle.write(content)
@@ -182,14 +218,11 @@ def _run_init(destination: Path, *, project_name: str | None) -> int:
         print(
             _terminal_safe(f"error: refusing to overwrite existing path: {target}"), file=sys.stderr
         )
-        return 2
+        return False
     except OSError as exc:
         print(_terminal_safe(f"error: could not create {target}: {exc}"), file=sys.stderr)
-        return 2
-
-    print(_terminal_safe(f"Created {target}"))
-    print(_terminal_safe(f"Next: samsarix-platform doctor {target}"))
-    return 0
+        return False
+    return True
 
 
 def _starter_manifest(project_name: str) -> str:

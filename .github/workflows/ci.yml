@@ -88,6 +88,9 @@ jobs:
       - name: Verify real pre-commit consumer integration
         run: python scripts/verify_pre_commit.py
 
+      - name: Verify editor schema with JSON Schema and Taplo
+        run: python scripts/verify_editor_schema.py
+
       - name: Build distributions
         run: python -m build
 

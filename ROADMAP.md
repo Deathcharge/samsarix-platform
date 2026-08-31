@@ -13,6 +13,11 @@ pre-commit hook. A disposable consumer verifies the real hook installation,
 valid and invalid batches, and no application-credential requirement. This is
 reproducible integration evidence, not third-party adoption.
 
+The same development snapshot now includes offline editor-schema export and
+tested Taplo completions, hover text, and structural diagnostics. The full parser
+remains the CI authority. No external editor extension or SchemaStore submission
+is required for the checked-in local schema workflow.
+
 ## Stabilize the productized default
 
 - Keep the default branch buildable from a clean checkout and preserve exact-head CI evidence.

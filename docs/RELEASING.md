@@ -10,7 +10,7 @@ Version `0.2.0` is a verified GitHub prerelease. Source, package, and protected 
 - configure the owner's PyPI project and trusted publisher;
 - choose the stable-release signing and artifact-provenance policy.
 
-Current source is `0.3.0.dev0`, adding offline validation and the pre-commit hook.
+Current source is `0.3.0.dev0`, adding offline validation, the pre-commit hook, and editor-schema export.
 Do not replace `v0.2.0` or assume it includes those features. Release this work
 under a new version after the new source and integration gates pass.
 
@@ -43,6 +43,7 @@ python -m build
 python -m twine check dist/*
 python scripts/verify_artifacts.py
 python scripts/verify_pre_commit.py
+python scripts/verify_editor_schema.py
 ```
 
 The build must create exactly one `.tar.gz` source distribution and one `py3-none-any.whl` for the selected version.
@@ -60,7 +61,7 @@ python -m samsarix_platform --version
 python -m pip check
 ```
 
-Also inspect wheel contents and confirm they include only the intended `samsarix_platform` modules, `py.typed`, distribution metadata, and MPL license metadata/files. Tests must exercise the installed entry point rather than relying only on source imports.
+Also inspect wheel contents and confirm they include only the intended `samsarix_platform` modules, the bundled `schemas/manifest.schema.json`, `py.typed`, distribution metadata, and MPL license metadata/files. Tests must exercise the installed entry point rather than relying only on source imports.
 
 `verify_artifacts.py` also checks `NOTICE.md` in the wheel, extracts the source
 archive with safe tar filters, and runs its shipped test suite against the wheel
