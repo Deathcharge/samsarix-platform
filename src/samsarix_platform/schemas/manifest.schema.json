@@ -1,0 +1,291 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Samsarix Platform Doctor environment contract",
+  "description": "Editor assistance for manifest versions 1 and 2. Run samsarix-platform validate for authoritative checks, including PEP 440, normalized duplicates, portable paths, and Unicode restrictions. Schema validity does not imply environment readiness.",
+  "x-copyright": "Copyright (c) 2026 Samsarix LLC",
+  "x-license": "MPL-2.0",
+  "oneOf": [
+    {
+      "$ref": "#/definitions/manifestV1"
+    },
+    {
+      "$ref": "#/definitions/manifestV2"
+    }
+  ],
+  "definitions": {
+    "manifestV1": {
+      "title": "Manifest version 1 (legacy)",
+      "type": "object",
+      "required": [
+        "schema_version",
+        "project"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "description": "Legacy manifest format, without executable or package-version checks.",
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "project": {
+          "$ref": "#/definitions/project"
+        },
+        "components": {
+          "description": "Installed Python distributions. This does not import packages.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/componentV1"
+          }
+        },
+        "environment": {
+          "$ref": "#/definitions/environment"
+        },
+        "files": {
+          "$ref": "#/definitions/files"
+        }
+      }
+    },
+    "manifestV2": {
+      "title": "Manifest version 2",
+      "type": "object",
+      "required": [
+        "schema_version",
+        "project"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "description": "Current format, including executable availability and PEP 440 package versions.",
+          "type": "integer",
+          "enum": [
+            2
+          ],
+          "default": 2
+        },
+        "project": {
+          "$ref": "#/definitions/project"
+        },
+        "components": {
+          "description": "Installed Python distributions and optional version constraints.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/componentV2"
+          }
+        },
+        "executables": {
+          "description": "Commands to discover on PATH. Commands are never executed.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/executable"
+          }
+        },
+        "environment": {
+          "$ref": "#/definitions/environment"
+        },
+        "files": {
+          "$ref": "#/definitions/files"
+        }
+      }
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "[^\\s]",
+      "not": {
+        "pattern": "[\u0000-\u001f-]"
+      },
+      "description": "Human-readable label. Non-empty; no control or formatting characters."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "[^\\s]",
+      "not": {
+        "pattern": "[\u0000-\u001f-]"
+      },
+      "description": "Optional human-readable explanation. Non-empty when provided."
+    },
+    "required": {
+      "description": "Missing required checks fail. Optional checks warn; --strict also fails on warnings.",
+      "type": "boolean",
+      "default": true
+    },
+    "distribution": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^\\s*[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9])?\\s*$",
+      "not": {
+        "pattern": "[\u0000-\u001f-]"
+      },
+      "description": "Python distribution name (not import name). Case and runs of dot, dash, and underscore normalize for duplicate detection."
+    },
+    "project": {
+      "description": "Project identity and the minimum Python interpreter version.",
+      "type": "object",
+      "required": [
+        "name",
+        "requires_python"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/name"
+        },
+        "requires_python": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^\\s*>=\\d{1,3}\\.\\d{1,3}(\\.\\d{1,3})?\\s*$",
+          "not": {
+            "pattern": "[\u0000-\u001f-]"
+          },
+          "description": "Minimum interpreter: >=MAJOR.MINOR or >=MAJOR.MINOR.PATCH, at most three digits per part. This is not a general PEP 440 range.",
+          "default": ">=3.11"
+        }
+      }
+    },
+    "componentV1": {
+      "type": "object",
+      "required": [
+        "name",
+        "distribution"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/name"
+        },
+        "distribution": {
+          "$ref": "#/definitions/distribution"
+        },
+        "required": {
+          "$ref": "#/definitions/required"
+        },
+        "description": {
+          "$ref": "#/definitions/description"
+        }
+      }
+    },
+    "componentV2": {
+      "type": "object",
+      "required": [
+        "name",
+        "distribution"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/name"
+        },
+        "distribution": {
+          "$ref": "#/definitions/distribution"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "[^\\s]",
+          "not": {
+            "pattern": "[\u0000-\u001f-]"
+          },
+          "description": "Optional PEP 440 specifier, for example >=1,<3. At most 256 characters after trimming. Authoritatively parsed by validate; omission means presence only."
+        },
+        "required": {
+          "$ref": "#/definitions/required"
+        },
+        "description": {
+          "$ref": "#/definitions/description"
+        }
+      }
+    },
+    "executable": {
+      "type": "object",
+      "required": [
+        "name",
+        "command"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/name"
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^\\s*[A-Za-z0-9]([A-Za-z0-9._+-]*[A-Za-z0-9])?\\s*$",
+          "not": {
+            "pattern": "[\u0000-\u001f-]"
+          },
+          "description": "Portable command name only, not a path or shell expression. Discovery only; no version probe."
+        },
+        "required": {
+          "$ref": "#/definitions/required"
+        },
+        "description": {
+          "$ref": "#/definitions/description"
+        }
+      }
+    },
+    "environment": {
+      "description": "Names of environment variables to check for presence. Never put credential values in this manifest.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\s*[A-Za-z_][A-Za-z0-9_]*\\s*$",
+            "not": {
+              "pattern": "[\u0000-\u001f-]"
+            },
+            "description": "Portable variable name. Duplicate names are rejected case-insensitively."
+          },
+          "required": {
+            "$ref": "#/definitions/required"
+          },
+          "secret": {
+            "description": "Privacy metadata; defaults to true. Values are never rendered, even when false.",
+            "type": "boolean",
+            "default": true
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          }
+        }
+      }
+    },
+    "files": {
+      "description": "Project-relative files or directories to check for presence, not content validation.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "[^\\s]",
+            "not": {
+              "pattern": "[\u0000-\u001f-]"
+            },
+            "description": "Relative path using forward slashes, contained by the manifest directory. Absolute paths, backslashes, parent traversal, and normalized duplicates are rejected by validate; doctor also checks resolved containment."
+          },
+          "required": {
+            "$ref": "#/definitions/required"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          }
+        }
+      }
+    }
+  }
+}

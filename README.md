@@ -4,7 +4,7 @@ Samsarix Platform Doctor is a local command-line tool from **Samsarix LLC** that
 
 It is for developers who want an actionable preflight before starting an agent application or running its CI—not another agent framework or hosted service.
 
-> Status: `0.3.0.dev0` development snapshot; the latest immutable GitHub prerelease is `v0.2.0`. The core local workflow is licensed under MPL 2.0 and has not been published to a Python package registry. Offline validation is new in this development snapshot.
+> Status: `0.3.0.dev0` development snapshot; the latest immutable GitHub prerelease is `v0.2.0`. The core local workflow is licensed under MPL 2.0 and has not been published to a Python package registry. Offline validation and editor-schema export are new in this development snapshot.
 
 ## What it does
 
@@ -116,6 +116,12 @@ See the runnable [example agent-project manifest](examples/agent-project/samsari
 
 ## Validate contracts before provisioning
 
+For completion hints and early typo diagnostics while writing a contract, export
+the bundled schema with `python -m samsarix_platform schema --output samsarix-stack.schema.json`
+and add `#:schema ./samsarix-stack.schema.json` at the top of the manifest.
+See [editor setup and its validation limits](docs/EDITORS.md). Export is offline
+and refuses to overwrite existing files.
+
 Check syntax and schema in a pull request or local hook without installing application
 packages, generating deployment files, or supplying credentials:
 
@@ -198,6 +204,7 @@ python -m build
 python -m twine check dist/*
 python scripts/verify_artifacts.py
 python scripts/verify_pre_commit.py
+python scripts/verify_editor_schema.py
 samsarix-platform doctor samsarix-stack.toml --strict
 ```
 

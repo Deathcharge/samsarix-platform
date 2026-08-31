@@ -35,6 +35,7 @@ src/samsarix_platform/
 ├── doctor.py     read-only checks and report model
 ├── manifest.py   strict schema parser and data model
 ├── validation.py offline ordered batch reports
+├── schemas/      bundled editor JSON schema, not a replacement parser
 └── py.typed      typed-package marker
 ```
 
@@ -48,7 +49,13 @@ report with `scope: manifest_only`. Input order is preserved and a malformed fil
 does not suppress later results. This supports isolated pre-commit environments
 and fork CI without credentials; it never weakens the live `doctor` policy.
 
-`cli.py` owns interaction. It maps a valid report to exit `0` or `1`, maps manifest/usage errors to exit `2`, and renders the same report as human text or JSON. `init` is the only write path and uses exclusive creation.
+`cli.py` owns interaction. It maps a valid report to exit `0` or `1`, maps manifest/usage errors to exit `2`, and renders the same report as human text or JSON. `init` and explicit `schema --output` export use shared exclusive file creation; other commands do not write files.
+
+`schema` reads a bundled package resource, independent of the current project and
+without external references or runtime probes. Its Draft 4 schema is a structural
+editor projection, not another validation engine. The authoritative TOML parser
+retains PEP 440, normalization, and input-safety rules. [Editor integration tests](EDITORS.md)
+exercise known agreements and intentional gaps through real Taplo CLI/LSP clients.
 
 For `validate`, all-valid returns `0` and any invalid input returns `2`. For human
 batches, failures go to stderr and successes/summary to stdout; JSON emits one

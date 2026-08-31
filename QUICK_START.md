@@ -40,6 +40,11 @@ samsarix-platform doctor
 
 ## Try the example
 
+For editor completion hints and typo diagnostics, run
+`samsarix-platform schema --output samsarix-stack.schema.json` beside your manifest
+and add `#:schema ./samsarix-stack.schema.json` as its first line.
+See [the editor guide](docs/EDITORS.md) for setup and validation limits.
+
 Before provisioning the application, validate contracts without credentials:
 
 ```console

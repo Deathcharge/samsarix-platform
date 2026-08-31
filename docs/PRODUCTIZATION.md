@@ -57,6 +57,44 @@ CI is recorded on the change PR. This
 is scenario/integration validation; an actual adopter and measurable value remain
 unproven. Details and the report contract are in [the CI guide](CI.md).
 
+### Adoption increment: local editor contract (2026-08-31)
+
+The next baseline was clean `f67d854`, with 66 passing tests and no open issues or
+pull requests. Teams could gate a contract in CI but lacked shipped editor
+descriptions/completions and early typo diagnostics. Actual external adoption and
+PyPI ownership remain owner/external gates; no other repository was modified to
+manufacture that evidence.
+
+Primary-source [Taplo schema documentation](https://taplo.tamasfe.dev/configuration/developing-schemas.html)
+and [directive semantics](https://taplo.tamasfe.dev/configuration/directives.html)
+led to a bundled Draft 4 projection with only internal references, exported by
+`schema [--output PATH]`. File export shares `init`'s exclusive-creation behavior,
+uses UTF-8 without a BOM, and never overwrites a destination. The full TOML parser
+remains authoritative: PEP 440, normalized duplicates, portable paths, and Unicode
+restrictions are not delegated to an editor's approximate schema engine.
+
+The integration tests found two compatibility issues before release: a literal
+space in a schema directive must be percent-encoded, and Taplo 0.9.3's completion
+engine can recurse indefinitely on composed `allOf` scalar constraints. The
+shipped schema uses equivalent direct constraints instead. A real stdio language
+server now verifies completion labels, hover documentation, and typo diagnostics.
+The verifier uses the upstream full Taplo 0.9.3 build because the PyPI build lacks
+LSP support; downloads have version/SHA-256 pins, size limits, and timeouts, and
+are development-only. It disables schema catalogs before opening local fixtures.
+
+Implemented: packaged resource and exporter; no-overwrite/UTF-8/installed-module
+regressions; Draft 4 and Taplo checks across 40 fixtures, including v1/v2, all
+examples, structural errors, and intentional editor/parser differences; artifact
+presence gates; CI integration; [complete editor setup](EDITORS.md), versioning,
+and limitations. Local Windows checks pass with 74 unit/CLI/package tests and
+96% branch-aware coverage. Ruff and strict mypy pass across 17 files. Full Taplo
+CLI/LSP verification passes. Hosted exact-head CI and artifact outcomes are
+recorded on the pull request rather than inferred from source tests.
+
+This remains development snapshot `0.3.0.dev0`; no release tag, registry
+publication, external extension submission, or third-party adoption is claimed.
+No runtime dependency, telemetry, or remote editor setting is introduced.
+
 ### Why this product
 
 - It preserves the repository's evidenced integration-hub and onboarding intent.

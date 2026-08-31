@@ -6,6 +6,10 @@ All notable changes to Samsarix Platform Doctor are documented here.
 
 ### Added
 
+- Bundled Draft 4 editor schema for manifest v1/v2, with offline `schema [--output PATH]`
+  export, UTF-8 output, and no-overwrite protection.
+- Real Taplo authoring verification: schema diagnostics, completion suggestions,
+  hover text, and explicit semantic limits relative to authoritative validation.
 - Offline `validate [MANIFEST ...] [--json]` command with complete ordered batch
   results and a dedicated `samsarix-platform-validation/v1` JSON contract.
 - Python pre-commit hook that checks contracts without application credentials,

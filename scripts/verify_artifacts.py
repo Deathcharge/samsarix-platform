@@ -33,6 +33,8 @@ def main() -> None:
         for filename in ("LICENSE", "NOTICE.md"):
             if f"{name}.dist-info/licenses/{filename}" not in names:
                 raise RuntimeError(f"Wheel is missing {filename}")
+        if "samsarix_platform/schemas/manifest.schema.json" not in names:
+            raise RuntimeError("Wheel is missing the editor schema")
     env = dict(os.environ)
     for key in ("PYTHONPATH", "PYTHONHOME"):
         env.pop(key, None)
@@ -45,6 +47,8 @@ def main() -> None:
             "NOTICE.md",
             ".pre-commit-hooks.yaml",
             "docs/CI.md",
+            "docs/EDITORS.md",
+            "src/samsarix_platform/schemas/manifest.schema.json",
             "examples/agent-project/samsarix-stack.toml",
             "examples/production-contract/samsarix-stack.toml",
         ):

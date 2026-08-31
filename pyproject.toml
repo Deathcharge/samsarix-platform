@@ -49,7 +49,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-samsarix_platform = ["py.typed"]
+samsarix_platform = ["py.typed", "schemas/*.json"]
 
 [tool.ruff]
 target-version = "py311"
