@@ -6,6 +6,8 @@ All notable changes to Samsarix Platform Doctor are documented here.
 
 ### Added
 
+- Hash-locked development/build dependencies, offline input/content drift checks,
+  and a fresh-environment verifier with real pip hash-mismatch rejection.
 - Bundled Draft 4 editor schema for manifest v1/v2, with offline `schema [--output PATH]`
   export, UTF-8 output, and no-overwrite protection.
 - Real Taplo authoring verification: schema diagnostics, completion suggestions,

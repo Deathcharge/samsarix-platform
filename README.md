@@ -186,8 +186,9 @@ Descriptions are documentation metadata for the manifest. Version 2 intentionall
 Install the package and pinned development tools:
 
 ```console
-python -m pip install -e .
-python -m pip install -r requirements-dev.txt
+python scripts/lock_dependencies.py --check
+python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock
+python -m pip install --no-deps --no-build-isolation -e .
 ```
 
 Run the same checks protected by CI:
@@ -200,7 +201,7 @@ python -m coverage erase
 python -m coverage run -m unittest discover -s tests
 python -m coverage report
 python -m pip_audit . --strict --progress-spinner off
-python -m build
+python -m build --no-isolation
 python -m twine check dist/*
 python scripts/verify_artifacts.py
 python scripts/verify_pre_commit.py
@@ -208,11 +209,15 @@ python scripts/verify_editor_schema.py
 samsarix-platform doctor samsarix-stack.toml --strict
 ```
 
-The runtime uses PyPA's `packaging` library for standards-compliant PEP 440 evaluation. `requirements-dev.txt` is tooling-only and exactly pinned for repeatable contributor and CI checks.
+The runtime uses PyPA's `packaging` library for standards-compliant PEP 440 evaluation.
+`requirements-dev.txt` declares direct tool pins; `requirements-dev.lock` locks their
+transitive dependencies, runtime dependency, and build backend with hashes. Use a
+fresh virtual environment and the commands above. See [dependency maintenance and
+reproducibility limits](docs/DEPENDENCIES.md).
 
 ## Packaging and release
 
-`pyproject.toml` defines the package, `src/` layout, typed-package marker, and console entry point. A source distribution and universal wheel can be built with `python -m build`. The wheel must be installed into a fresh virtual environment and smoke-tested before release.
+`pyproject.toml` defines the package, `src/` layout, typed-package marker, and console entry point. A source distribution and universal wheel can be built with `python -m build --no-isolation`. The wheel must be installed into a fresh virtual environment and smoke-tested before release.
 
 Publication is not automated. See [the release guide](docs/RELEASING.md) for the verified local process and the owner-controlled PyPI, trusted-publishing, and signing gates.
 

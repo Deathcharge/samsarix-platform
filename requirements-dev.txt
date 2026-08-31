@@ -1,5 +1,6 @@
 # Copyright (c) 2026 Samsarix LLC
 # SPDX-License-Identifier: MPL-2.0
+# Direct lock inputs only. Install requirements-dev.lock with --require-hashes.
 
 build==1.5.0
 coverage==7.13.2
@@ -10,3 +11,4 @@ pre-commit==4.6.2
 ruff==0.15.12
 twine==6.2.0
 types-jsonschema==4.26.0.20260518
+uv==0.12.7

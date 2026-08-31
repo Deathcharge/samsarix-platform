@@ -15,8 +15,9 @@ python -m venv .venv
 Activate the virtual environment, then install the package and pinned development tools:
 
 ```console
-python -m pip install -e .
-python -m pip install -r requirements-dev.txt
+python scripts/lock_dependencies.py --check
+python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock
+python -m pip install --no-deps --no-build-isolation -e .
 ```
 
 ## Before opening a pull request
@@ -30,7 +31,7 @@ python -m mypy src tests scripts
 python -m coverage erase
 python -m coverage run -m unittest discover -s tests
 python -m coverage report
-python -m build
+python -m build --no-isolation
 python -m twine check dist/*
 python scripts/verify_artifacts.py
 python scripts/verify_pre_commit.py
@@ -39,6 +40,11 @@ samsarix-platform doctor samsarix-stack.toml --strict
 ```
 
 CI runs the unit tests and installed CLI journey on Windows and Linux, then repeats lint, type, coverage, and build checks on Linux.
+
+Every matrix target also installs the hash-locked tool environment and reruns the
+suite. The original runtime-only install remains a compatibility check against
+normally resolved dependencies. Dependency changes, including bot updates, must
+regenerate the lock; see [the update and verification procedure](docs/DEPENDENCIES.md).
 
 The hook verifier tests committed `HEAD`, not uncommitted changes, and creates an
 isolated consumer/cache outside the repository. Run it after committing hook or

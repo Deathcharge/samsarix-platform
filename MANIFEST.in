@@ -5,6 +5,7 @@ include *.md
 include .pre-commit-hooks.yaml
 include .github/workflows/ci.yml
 include requirements-dev.txt
+include requirements-dev.lock
 include samsarix-stack.toml
 recursive-include docs *.md
 recursive-include examples *.md *.toml
