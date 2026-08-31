@@ -10,7 +10,7 @@ requires_python = ">=3.11"
 [[components]]
 name = "Samsarix Platform Doctor package"
 distribution = "samsarix-platform"
-version = ">=0.2,<0.3"
+version = ">=0.3.0.dev0,<0.4"
 required = true
 description = "The installed CLI distribution"
 

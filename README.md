@@ -4,7 +4,7 @@ Samsarix Platform Doctor is a local command-line tool from **Samsarix LLC** that
 
 It is for developers who want an actionable preflight before starting an agent application or running its CI—not another agent framework or hosted service.
 
-> Status: `0.2.0` pre-release. The core local workflow is implemented, tested, and licensed under MPL 2.0, but it has not been published to a Python package registry.
+> Status: `0.3.0.dev0` development snapshot; the latest immutable GitHub prerelease is `v0.2.0`. The core local workflow is licensed under MPL 2.0 and has not been published to a Python package registry. Offline validation is new in this development snapshot.
 
 ## What it does
 
@@ -114,6 +114,28 @@ samsarix-platform doctor --json
 
 See the runnable [example agent-project manifest](examples/agent-project/samsarix-stack.toml).
 
+## Validate contracts before provisioning
+
+Check syntax and schema in a pull request or local hook without installing application
+packages, generating deployment files, or supplying credentials:
+
+```console
+python -m samsarix_platform validate
+python -m samsarix_platform validate samsarix-stack.toml examples/production-contract/samsarix-stack.toml --json
+```
+
+Every path is checked, even after an earlier error. Exit `0` means all contracts
+are valid; `2` means invalid input. The JSON scope is explicitly `manifest_only`:
+valid does **not** mean ready. Use `doctor --strict` in the actual provisioned
+environment. A `samsarix-validate` pre-commit hook is included. See [the CI and
+pre-commit guide](docs/CI.md) for the batch JSON contract and a tested integration.
+
+`doctor` inspects the Python environment running the CLI, not an automatically
+discovered project environment. Install it alongside your application and prefer
+`python -m samsarix_platform doctor` from that environment. An isolated `pipx` or
+pre-commit installation is suitable for `validate`, but not for checking packages
+installed in a different virtual environment.
+
 ## Command reference
 
 ```text
@@ -121,6 +143,7 @@ samsarix-platform --help
 samsarix-platform --version
 samsarix-platform init [PATH] [--name NAME]
 samsarix-platform doctor [MANIFEST] [--json] [--strict]
+samsarix-platform validate [MANIFEST ...] [--json]
 ```
 
 `init` uses exclusive file creation and exits `2` rather than replacing an existing path or following an existing destination symlink.
@@ -132,6 +155,9 @@ samsarix-platform doctor [MANIFEST] [--json] [--strict]
 | `0` | All required checks pass; optional warnings are allowed unless `--strict` is set. |
 | `1` | A required check failed, or an optional check warned under `--strict`. |
 | `2` | The command usage or manifest is invalid, unreadable, missing, or unsafe. |
+
+These readiness meanings apply to `doctor`; `validate` returns only `0` (all
+contracts valid) or `2` (input/usage invalid), never a readiness result.
 
 ### Manifest schema version 2
 
@@ -163,13 +189,15 @@ Run the same checks protected by CI:
 ```console
 python -m ruff format --check .
 python -m ruff check .
-python -m mypy src tests
+python -m mypy src tests scripts
 python -m coverage erase
 python -m coverage run -m unittest discover -s tests
 python -m coverage report
 python -m pip_audit . --strict --progress-spinner off
 python -m build
 python -m twine check dist/*
+python scripts/verify_artifacts.py
+python scripts/verify_pre_commit.py
 samsarix-platform doctor samsarix-stack.toml --strict
 ```
 
@@ -183,9 +211,10 @@ Publication is not automated. See [the release guide](docs/RELEASING.md) for the
 
 ## Architecture
 
-The package has three small layers:
+The package has four small layers:
 
 - `manifest.py` strictly parses and validates untrusted TOML;
+- `validation.py` batches offline contract results without inspecting runtime requirements;
 - `doctor.py` performs read-only local checks and creates a value-free report;
 - `cli.py` handles commands, rendering, JSON, and exit codes.
 

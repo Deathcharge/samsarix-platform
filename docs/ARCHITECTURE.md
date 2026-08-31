@@ -9,6 +9,8 @@ flowchart LR
     A["User or CI"] --> B["CLI arguments"]
     B --> C["Strict TOML parser"]
     C --> D["Validated immutable manifest"]
+    D --> V["validate: offline batch report"]
+    V --> J
     D --> E["Python check"]
     D --> F["Distribution metadata checks"]
     D --> G["Executable PATH checks"]
@@ -32,6 +34,7 @@ src/samsarix_platform/
 ├── cli.py        argument parsing, rendering, init, exit behavior
 ├── doctor.py     read-only checks and report model
 ├── manifest.py   strict schema parser and data model
+├── validation.py offline ordered batch reports
 └── py.typed      typed-package marker
 ```
 
@@ -39,7 +42,18 @@ src/samsarix_platform/
 
 `doctor.py` owns check semantics. Each check returns one `pass`, `warn`, or `fail` result and optional remediation. Required missing items fail; optional missing items warn. Warnings become non-ready only under strict mode.
 
+`validation.py` reuses the same loader but performs no runtime checks. It processes
+all explicitly supplied manifests into a dedicated `samsarix-platform-validation/v1`
+report with `scope: manifest_only`. Input order is preserved and a malformed file
+does not suppress later results. This supports isolated pre-commit environments
+and fork CI without credentials; it never weakens the live `doctor` policy.
+
 `cli.py` owns interaction. It maps a valid report to exit `0` or `1`, maps manifest/usage errors to exit `2`, and renders the same report as human text or JSON. `init` is the only write path and uses exclusive creation.
+
+For `validate`, all-valid returns `0` and any invalid input returns `2`. For human
+batches, failures go to stderr and successes/summary to stdout; JSON emits one
+document on stdout. Runtime readiness and schema validity have separate output
+contracts. The new command does not alter `doctor` JSON or manifest v1/v2 semantics.
 
 For `init`, a relative user-selected destination is joined lexically to the current directory without resolving the destination itself. Its parent must exist, existing symlinks are rejected explicitly, and exclusive creation rejects any other existing path. This keeps initialization from being redirected outside the selected project through a pre-existing destination link.
 

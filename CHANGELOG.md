@@ -4,7 +4,20 @@ All notable changes to Samsarix Platform Doctor are documented here.
 
 ## Unreleased
 
-No unreleased changes.
+### Added
+
+- Offline `validate [MANIFEST ...] [--json]` command with complete ordered batch
+  results and a dedicated `samsarix-platform-validation/v1` JSON contract.
+- Python pre-commit hook that checks contracts without application credentials,
+  installed SDKs, or generated files; validation does not imply readiness.
+- Unprovisioned production-contract example and real disposable-consumer hook tests.
+- Isolated artifact verification using the tests and examples shipped in the source archive.
+
+### Changed
+
+- Development version advanced to `0.3.0.dev0`; the immutable `v0.2.0` release is unchanged.
+- Include brand notice in wheel license metadata and documentation/examples in source archives.
+- Document active-interpreter behavior to avoid checking the wrong Python environment.
 
 ## 0.2.0 - 2026-08-11
 

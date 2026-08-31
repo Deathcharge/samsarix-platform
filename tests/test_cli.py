@@ -134,7 +134,7 @@ class CliTests(unittest.TestCase):
             runpy.run_module("samsarix_platform", run_name="__main__")
 
         self.assertEqual(raised.exception.code, 0)
-        self.assertIn("samsarix-platform 0.2.0", stdout.getvalue())
+        self.assertIn("samsarix-platform 0.3.0.dev0", stdout.getvalue())
 
     def test_terminal_output_escapes_controls_and_formatting(self) -> None:
         rendered = _terminal_safe("ready\n\x1b\x7f\u202eforged")

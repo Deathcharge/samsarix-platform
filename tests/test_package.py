@@ -29,6 +29,12 @@ class InstalledPackageTests(unittest.TestCase):
         self.assertEqual(len(scripts), 1)
         self.assertEqual(scripts[0].value, "samsarix_platform.cli:main")
 
+    def test_distribution_preserves_brand_notice_and_license(self) -> None:
+        distribution = importlib.metadata.distribution("samsarix-platform")
+        self.assertEqual(
+            set(distribution.metadata.get_all("License-File") or []), {"LICENSE", "NOTICE.md"}
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

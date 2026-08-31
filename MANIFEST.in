@@ -1,0 +1,12 @@
+# Copyright (c) 2026 Samsarix LLC
+# SPDX-License-Identifier: MPL-2.0
+
+include *.md
+include .pre-commit-hooks.yaml
+include .github/workflows/ci.yml
+include requirements-dev.txt
+include samsarix-stack.toml
+recursive-include docs *.md
+recursive-include examples *.md *.toml
+recursive-include scripts *.py
+recursive-include tests *.py

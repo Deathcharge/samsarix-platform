@@ -26,16 +26,22 @@ Run:
 ```console
 python -m ruff format --check .
 python -m ruff check .
-python -m mypy src tests
+python -m mypy src tests scripts
 python -m coverage erase
 python -m coverage run -m unittest discover -s tests
 python -m coverage report
 python -m build
 python -m twine check dist/*
+python scripts/verify_artifacts.py
+python scripts/verify_pre_commit.py
 samsarix-platform doctor samsarix-stack.toml --strict
 ```
 
 CI runs the unit tests and installed CLI journey on Windows and Linux, then repeats lint, type, coverage, and build checks on Linux.
+
+The hook verifier tests committed `HEAD`, not uncommitted changes, and creates an
+isolated consumer/cache outside the repository. Run it after committing hook or
+package changes. See [the CI guide](docs/CI.md) for the contract-only hook.
 
 ## Change expectations
 
