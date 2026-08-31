@@ -6,6 +6,21 @@ This is the living assessment and release record for `samsarix-platform`. It dis
 
 ## Current repository assessment
 
+At merged commit `abba3ef4c82fdb8cc74b6cef0201fab01c342b5f`, the source is
+development snapshot `0.3.0.dev0`, with 84 unit/CLI/package tests and all five
+[required CI checks passing](https://github.com/Deathcharge/samsarix-platform/actions/runs/33386398651).
+It includes runtime readiness checks, offline batch validation and a pre-commit
+hook, local editor-schema export, and hash-locked development/build inputs.
+The implementation and verification increments below record how those capabilities
+were added. The older baseline and `v0.2.0` verification results are historical,
+not the current test count or evidence of a new release.
+
+The published GitHub prerelease remains `v0.2.0`. A real consumer, measured
+maintenance value, and package-registry publication remain unproven or
+owner-controlled; passing repository CI does not establish those outcomes.
+
+## Original repository assessment
+
 The baseline at commit `bc98b78c20b374644bf3a6b62d85e8fb7b653da3` was a clean, documentation-only repository. Its three-commit history never contained application or package source code. The ten tracked files described a production multi-agent platform, but the repository had no importable package, executable, tests, packaging metadata, lockfile, CI workflow, deployment manifests, license file, or runnable example files.
 
 Several documented dependencies (`helix-agent-swarm`, `agent-consensus`, and `unified-llm`) had no matching PyPI releases when checked on 2026-07-28. The existing `requirements.txt` therefore could not install. Documentation also linked to missing files and claimed unverified test counts, coverage, performance, security controls, production deployments, endpoints, community channels, and license terms.
@@ -207,7 +222,7 @@ No valid start command existed. Deployment commands were not run because every r
 
 ### P2
 
-- [ ] Add JSON Schema export or editor completion if user demand justifies the maintenance cost.
+- [x] Add local JSON Schema export and verify editor completion, hover, and structural diagnostics; see the editor-contract increment above. External demand remains unvalidated.
 - [x] Add read-only executable availability checks without command execution.
 - [ ] Add optional network endpoint checks only with explicit timeout, cancellation, and redaction semantics.
 - [ ] Add shell completion and richer CI annotations.
@@ -251,15 +266,17 @@ No valid start command existed. Deployment commands were not run because every r
 - Performed bounded comparison research and selected a doctor-style local CLI using current Python packaging conventions.
 - Implemented the focused-runtime-dependency package, `doctor` and non-overwriting `init` commands, strict TOML schema, stable JSON, and documented exit codes.
 - Added manifest size, UTF-8, control-character, duplicate, path-containment, destination-symlink, secret-redaction, and no-import controls with regression tests.
-- Added a maintained example, 52 unit/CLI/package tests, Ruff, strict mypy, branch-aware coverage, cross-platform CI, dependency update configuration, build verification, and fresh-wheel smoke coverage.
+- Added a maintained example, an initial 52 unit/CLI/package tests, Ruff, strict mypy, branch-aware coverage, cross-platform CI, dependency update configuration, build verification, and fresh-wheel smoke coverage. The later increments above expand the suite to 84 tests.
 - Added environment contract v2 with PEP 440 component constraints, safe executable discovery, v1 compatibility, and schema-aware JSON reports.
 - Hardened special-file reads, parser recursion/numeric errors, distribution-name canonicalization, and terminal rendering following a complete standard security scan.
 - Replaced the obsolete backup, un-installable runtime requirements, fabricated deployment guide, and aspirational platform examples with accurate product, architecture, release, contribution, and limitation documentation.
 - Migrated all current product identifiers to Samsarix before publication and added MPL 2.0 licensing, Samsarix LLC attribution, brand boundaries, and verified company contact channels.
 
-## Final verification results
+## Original productization verification (`v0.2.0`)
 
-Run on Windows with Python 3.11.9 against the final implementation:
+Run on Windows with Python 3.11.9 against the original `v0.2.0` implementation.
+These results are retained as release history; the later development increments
+and current assessment above provide the newer evidence.
 
 | Command | Actual result |
 | --- | --- |
