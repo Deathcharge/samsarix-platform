@@ -56,8 +56,8 @@ For human output, successes and the summary go to stdout; errors go to stderr.
 }
 ```
 
-`manifest` preserves the input spelling; `resolved_manifest` identifies the loaded
-file. Invalid entries have `status: invalid`, an error string, and null resolved
+`manifest` is the supplied path rendered using the host's path syntax;
+`resolved_manifest` identifies the loaded file. Invalid entries have `status: invalid`, an error string, and null resolved
 path, schema version, and project fields. The top-level status is `invalid` if
 any entry is invalid. Error wording is not a machine API: branch on status and
 exit code. Argument-parser usage errors remain ordinary stderr errors even with
@@ -66,11 +66,29 @@ separate `samsarix-platform-doctor/v1` schema unchanged.
 
 ## Pre-commit
 
+Copy this into the consumer's `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: https://github.com/Deathcharge/samsarix-platform
+    rev: 5f2ba0255d2b702cecd449416256a52963168466  # offline validation, 0.3.0.dev0
+    hooks:
+      - id: samsarix-validate
+```
+
+Then run `pre-commit run samsarix-validate --all-files`; run `pre-commit install`
+in that consumer to opt into commit-time checks. Both commands require
+[pre-commit](https://pre-commit.com/#install) to be installed. Hook installation
+does not install or provision the application. Remove the hook entry to roll
+back; previously checked files are never changed by validation.
+
 The exported hook is `samsarix-validate`. Pin a full reviewed commit containing
 `.pre-commit-hooks.yaml` in the consumer's `.pre-commit-config.yaml`. Its Python
 environment needs Python 3.11+ but no application SDKs or keys. By default it
 matches files named `samsarix-stack.toml` anywhere in the repository. Override
-`files` for custom manifest names. The hook passes filenames after `--`; do not
+`files` for custom manifest names. Like ordinary file-only pre-commit hooks it
+does not select symlinks; explicitly pass those paths to `validate` in CI if used.
+The hook passes filenames after `--`; do not
 use hook `args` to supply CLI switches. Use the CLI directly for JSON reports.
 
 Before adopting, test the committed hook from a checkout of this repository:

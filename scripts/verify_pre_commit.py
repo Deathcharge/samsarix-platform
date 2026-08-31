@@ -71,7 +71,10 @@ path = "not-generated.toml"
         run(["git", "add", "--", "."], consumer, env)
         command = [sys.executable, "-m", "pre_commit", "run", "--all-files", "--verbose"]
         success = run(command, consumer, env)
-        if success.count("[VALID]") != 2 or "--json/samsarix-stack.toml" not in success:
+        if (
+            success.count("[VALID]") != 2
+            or str(Path("--json") / "samsarix-stack.toml") not in success
+        ):
             raise RuntimeError(f"The hook did not validate both files:\n{success}")
         original = first.read_bytes()
         second.write_text(contract.replace("schema_version", "schema_versoin"), encoding="utf-8")

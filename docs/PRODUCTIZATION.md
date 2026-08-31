@@ -49,8 +49,11 @@ verifier now cover those distribution gaps. The pre-commit verifier pins committ
 leading-hyphen filenames. Neither verifier mutates another user repository.
 
 Local verification: 66 tests passed, 96% branch-aware coverage, Ruff formatting
-and lint passed, and strict mypy passed across 15 files. Installed-artifact and
-real-hook results plus exact-head hosted CI are recorded on the change PR. This
+and lint passed, and strict mypy passed across 15 files. Fresh wheel/source-suite
+verification passed with all 66 tests, and the real pre-commit consumer passed
+both valid and invalid batches on Windows at `5f2ba0255d2b702cecd449416256a52963168466`.
+The runtime dependency audit found no known vulnerabilities. Exact-head hosted
+CI is recorded on the change PR. This
 is scenario/integration validation; an actual adopter and measurable value remain
 unproven. Details and the report contract are in [the CI guide](CI.md).
 
