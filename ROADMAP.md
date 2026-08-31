@@ -8,6 +8,11 @@ Portfolio role: **internal infrastructure**. Use this to improve the portfolio t
 
 Current disposition: the repository is an MPL-2.0 open-source prerelease with protected, green hosted CI. PyPI publication remains a separate owner-controlled milestone.
 
+The `0.3.0.dev0` development increment adds offline batch validation and a
+pre-commit hook. A disposable consumer verifies the real hook installation,
+valid and invalid batches, and no application-credential requirement. This is
+reproducible integration evidence, not third-party adoption.
+
 ## Stabilize the productized default
 
 - Keep the default branch buildable from a clean checkout and preserve exact-head CI evidence.
@@ -16,6 +21,9 @@ Current disposition: the repository is an MPL-2.0 open-source prerelease with pr
 - Locally reproduced in this pass: unit tests, formatting, lint, types, 90% coverage, and package build pass.
 - Environment contract v2 now validates PEP 440 distribution ranges and read-only executable availability while preserving schema v1 compatibility.
 - Next: adopt one real manifest consumer through an immutable revision.
+- Use offline `validate` for fork PRs and hooks; retain `doctor --strict` in the
+  provisioned application environment. Do not make required credentials optional
+  to accommodate unprovisioned CI.
 - Review priority: real consumer adoption, then package-publication provenance.
 
 ## Release candidate

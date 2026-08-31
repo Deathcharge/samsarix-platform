@@ -10,6 +10,10 @@ Version `0.2.0` is a verified GitHub prerelease. Source, package, and protected 
 - configure the owner's PyPI project and trusted publisher;
 - choose the stable-release signing and artifact-provenance policy.
 
+Current source is `0.3.0.dev0`, adding offline validation and the pre-commit hook.
+Do not replace `v0.2.0` or assume it includes those features. Release this work
+under a new version after the new source and integration gates pass.
+
 The repository is licensed under MPL 2.0, identifies Samsarix LLC as the initial copyright holder, and publishes direct support/security contact details. The public PyPI project and JSON URLs for `samsarix-platform` returned `404` when checked on 2026-07-28, but that is not a reservation or guarantee that the name can be claimed later.
 
 Do not publish from an unreviewed developer workstation or by placing a long-lived PyPI token in this repository.
@@ -30,13 +34,15 @@ python -m pip install -e .
 python -m pip install -r requirements-dev.txt
 python -m ruff format --check .
 python -m ruff check .
-python -m mypy src tests
+python -m mypy src tests scripts
 python -m coverage erase
 python -m coverage run -m unittest discover -s tests
 python -m coverage report
 samsarix-platform doctor samsarix-stack.toml --strict
 python -m build
 python -m twine check dist/*
+python scripts/verify_artifacts.py
+python scripts/verify_pre_commit.py
 ```
 
 The build must create exactly one `.tar.gz` source distribution and one `py3-none-any.whl` for the selected version.
@@ -55,6 +61,12 @@ python -m pip check
 ```
 
 Also inspect wheel contents and confirm they include only the intended `samsarix_platform` modules, `py.typed`, distribution metadata, and MPL license metadata/files. Tests must exercise the installed entry point rather than relying only on source imports.
+
+`verify_artifacts.py` also checks `NOTICE.md` in the wheel, extracts the source
+archive with safe tar filters, and runs its shipped test suite against the wheel
+in a fresh environment. This catches missing examples/documentation that a test
+run from the development checkout would conceal. Pass an alternate artifact
+directory as the first argument if builds are stored outside `dist/`.
 
 ## Version and changelog
 

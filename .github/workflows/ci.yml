@@ -40,6 +40,9 @@ jobs:
       - name: Run unit and command tests
         run: python -m unittest discover -s tests -v
 
+      - name: Validate contracts without application credentials
+        run: samsarix-platform validate samsarix-stack.toml examples/agent-project/samsarix-stack.toml --json
+
       - name: Run strict repository readiness check
         run: samsarix-platform doctor samsarix-stack.toml --strict
 
@@ -71,7 +74,7 @@ jobs:
         run: python -m ruff check .
 
       - name: Type check
-        run: python -m mypy src tests
+        run: python -m mypy src tests scripts
 
       - name: Test with branch coverage
         run: |
@@ -82,11 +85,17 @@ jobs:
       - name: Audit runtime dependencies
         run: python -m pip_audit . --strict --progress-spinner off
 
+      - name: Verify real pre-commit consumer integration
+        run: python scripts/verify_pre_commit.py
+
       - name: Build distributions
         run: python -m build
 
       - name: Check distribution metadata
         run: python -m twine check dist/*
+
+      - name: Verify source archive and isolated wheel
+        run: python scripts/verify_artifacts.py
 
       - name: Reinstall and smoke-test the wheel
         run: |

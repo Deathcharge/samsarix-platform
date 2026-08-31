@@ -1,6 +1,6 @@
 # Productization record
 
-Last updated: 2026-08-11
+Last updated: 2026-08-31
 
 This is the living assessment and release record for `samsarix-platform`. It distinguishes repository evidence from product assumptions and is updated as implementation and verification progress.
 
@@ -15,6 +15,44 @@ Several documented dependencies (`helix-agent-swarm`, `agent-consensus`, and `un
 **Samsarix Platform Doctor** is a local-first Python CLI for checking whether a Python multi-agent project is ready to run. A project declares its requirements in `samsarix-stack.toml`; the CLI checks the Python version, compatible installed distributions, executable availability, required environment-variable presence, and required files, then returns actionable human-readable or JSON results with stable exit codes.
 
 This is an intentionally narrow integration-readiness tool, not an agent runtime, orchestration framework, hosted service, or dashboard.
+
+### Adoption increment: offline contract gate (2026-08-31)
+
+The continuation baseline was a clean `172b0ec` (`v0.2.0`), with 52 passing tests,
+no open GitHub issues/PRs, and no open Dependabot alerts. Live `doctor` could check
+a provisioned environment, but there was no command to validate a contract in a
+fork PR or isolated pre-commit environment. Advising `pipx` for live readiness also
+risked checking the tool's environment instead of the application's.
+
+Bounded primary-source research informed the next slice:
+
+- [uv pip check](https://docs.astral.sh/uv/pip/compatibility/#pip-check) checks
+  installed package consistency. Samsarix complements it with project-specific
+  requirements rather than reproducing dependency resolution.
+- [pre-commit](https://pre-commit.com/) installs Python hooks in isolated
+  environments and passes matching filenames. Contract validation is appropriate
+  there; runtime package checks would inspect the wrong environment.
+- [GitHub secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
+  are withheld from fork PRs. Structural validation must not require fake keys,
+  weaken required production declarations, or use privileged fork workflows.
+
+Decision: add `validate [MANIFEST ...] [--json]` with a separate, explicitly
+manifest-only report, export a pre-commit hook, and demonstrate valid-but-unready
+production contracts. The same parser enforces v1/v2 compatibility and input
+limits. No new runtime dependency, subprocess, telemetry, or network probe is
+introduced. The development version is `0.3.0.dev0`; `v0.2.0` stays immutable.
+
+The artifact check also exposed missing source-archive examples and a missing
+wheel brand notice. `MANIFEST.in`, license metadata, and a fresh-wheel/source-suite
+verifier now cover those distribution gaps. The pre-commit verifier pins committed
+`HEAD` in a disposable consumer and exercises success, failure, batching, and
+leading-hyphen filenames. Neither verifier mutates another user repository.
+
+Local verification: 66 tests passed, 96% branch-aware coverage, Ruff formatting
+and lint passed, and strict mypy passed across 15 files. Installed-artifact and
+real-hook results plus exact-head hosted CI are recorded on the change PR. This
+is scenario/integration validation; an actual adopter and measurable value remain
+unproven. Details and the report contract are in [the CI guide](CI.md).
 
 ### Why this product
 
@@ -190,4 +228,9 @@ The protected GitHub Actions matrix passed on Linux and Windows with Python 3.11
 
 ## Distribution and sustainability
 
-The simplest distribution is a Python wheel installed with `pipx` or `pip`. The first release should remain local-only and free of hosted operating costs. If usage is validated, sustainable maintenance could come from sponsorship or paid integration support; a hosted tier or subscription is not justified by current evidence.
+Distribute a wheel into the application's Python environment for `doctor`; use an
+isolated tool/pre-commit installation for `validate`. A `pipx` installation does
+not inspect packages in a separate application virtual environment. The product
+remains local-only and free of hosted operating costs. If usage is validated,
+sustainable maintenance could come from sponsorship or paid integration support;
+a hosted tier or subscription is not justified by current evidence.

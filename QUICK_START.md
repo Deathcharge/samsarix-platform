@@ -40,6 +40,17 @@ samsarix-platform doctor
 
 ## Try the example
 
+Before provisioning the application, validate contracts without credentials:
+
+```console
+python -m samsarix_platform validate examples/production-contract/samsarix-stack.toml --json
+```
+
+This returns `0` for a valid schema, not readiness. Running `doctor` on that
+intentionally unprovisioned fixture returns `1`. Use [the CI guide](docs/CI.md)
+for fork-safe and pre-commit integration. Run `doctor` with the application's
+Python environment; an isolated tool installation cannot see its packages.
+
 ```console
 samsarix-platform doctor examples/agent-project/samsarix-stack.toml
 ```

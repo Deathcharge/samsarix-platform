@@ -15,6 +15,7 @@ from pathlib import Path
 from samsarix_platform import __version__
 from samsarix_platform.doctor import DoctorReport, run_checks
 from samsarix_platform.manifest import ManifestError, load_manifest
+from samsarix_platform.validation import validate_manifests
 
 DEFAULT_MANIFEST = "samsarix-stack.toml"
 
@@ -43,6 +44,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="treat optional warnings as a non-ready result",
     )
 
+    validate = commands.add_parser(
+        "validate", help="validate manifest syntax and schema without readiness checks"
+    )
+    validate.add_argument(
+        "manifests",
+        nargs="*",
+        metavar="MANIFEST",
+        help=f"one or more manifest paths (default: {DEFAULT_MANIFEST})",
+    )
+    validate.add_argument(
+        "--json", action="store_true", help="write one batch JSON report to stdout"
+    )
+
     init = commands.add_parser("init", help="create a safe starter manifest")
     init.add_argument(
         "path",
@@ -60,9 +74,36 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "doctor":
         return _run_doctor(Path(args.manifest), json_output=args.json, strict=args.strict)
+    if args.command == "validate":
+        paths = [Path(path) for path in (args.manifests or [DEFAULT_MANIFEST])]
+        return _run_validate(paths, json_output=args.json)
     if args.command == "init":
         return _run_init(Path(args.path), project_name=args.name)
     raise AssertionError(f"unhandled command: {args.command}")
+
+
+def _run_validate(paths: Sequence[Path], *, json_output: bool) -> int:
+    report = validate_manifests(paths)
+    if json_output:
+        print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+    else:
+        for result in report.results:
+            if result.status == "invalid":
+                print(
+                    _terminal_safe(f"[INVALID] {result.manifest}: {result.error}"),
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    _terminal_safe(
+                        f"[VALID] {result.manifest}: {result.project} "
+                        f"(schema {result.manifest_schema_version})"
+                    )
+                )
+        counts = report.counts()
+        print(f"Summary: {counts['valid']} valid, {counts['invalid']} invalid")
+        print("Scope: manifest syntax and schema only; environment readiness was not checked.")
+    return report.exit_code()
 
 
 def _run_doctor(manifest_path: Path, *, json_output: bool, strict: bool) -> int:
