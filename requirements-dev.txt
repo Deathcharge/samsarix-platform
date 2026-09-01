@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # Direct lock inputs only. Install requirements-dev.lock with --require-hashes.
 
-build==1.5.0
+build==1.6.0
 coverage==7.13.2
 jsonschema==4.26.0
 mypy==1.19.1
