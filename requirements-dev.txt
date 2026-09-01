@@ -8,7 +8,7 @@ jsonschema==4.26.0
 mypy==1.19.1
 pip-audit==2.10.1
 pre-commit==4.6.2
-ruff==0.15.12
+ruff==0.16.5
 twine==6.2.0
 types-jsonschema==4.26.0.20260518
 uv==0.12.7
